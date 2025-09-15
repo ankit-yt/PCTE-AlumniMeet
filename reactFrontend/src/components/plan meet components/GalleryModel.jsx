@@ -1,116 +1,274 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { IoClose } from "react-icons/io5";
 import { FastAverageColor } from "fast-average-color";
 import Header from "./gallery-components/Header";
 import Video from "./gallery-components/Video";
 import Images from "./gallery-components/Images";
+import { useSelector } from "react-redux";
+import { IoMdImages } from "react-icons/io";
+import { FaVideo } from "react-icons/fa6";
 
 function GalleryModel({ values, setters }) {
-  const { selectedMeetArray } = values;
-  const { setIsGalleryOpen } = setters;
+  const {
+    mediaInputFields,
+    imageIds,
+    isGalleryOpen,
+    mobileViewImages,
+    mobileViewVideo,
+    isVideoSelected,
+    isImagesSelected,
+    isMediaUploadModelOpen,
+    meetId,
+    allMeets,
+  } = values;
 
+  const {
+    setIsGalleryOpen,
+    handleMediaUpdate,
+    setImageIds,
+    handleMobileMediaChange,
+    setIsMediaUploadModelOpen,
+    setMobileViewImages,
+    setMobileViewVideo,
+    setIsVideoSelected,
+    setIsImagesSelected,
+    handleMobileViewMediaSubmit,
+  } = setters;
+
+  const { isTablet, screenWidth, isDesktop, isMobile } = useSelector(
+    (state) => state.ui
+  );
+
+  // derive selected meet safely
+  const selectedMeetArray = useMemo(
+    () => allMeets.find((meet) => String(meet._id) === String(meetId)) || null,
+    [allMeets, meetId]
+  );
+
+  const [submitModel, setSubmitModel] = useState(false);
   const [bgcolor, setBgcolor] = useState("#ffffff");
   const [toggle, setToggle] = useState(false);
-  const [isVideo, setIsVideo] = useState(true)
-
-  const fac = new FastAverageColor();
+  const [isVideo, setIsVideo] = useState(true);
+  const [video, setVideo] = useState(null);
+  const [images, setImages] = useState([]);
+  const mediaRef = useRef(null);
   const videoRef = useRef(null);
-  useEffect(() => {
-    const video = videoRef.current;
 
-    if (!video) return;
+
+  const fac = useMemo(() => new FastAverageColor(), []);
+
+
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
     let interval;
 
     const updateColor = () => {
-      if (video.paused || video.ended) return;
-      const color = fac.getColor(video);
+      if (videoEl.paused || videoEl.ended) return;
+      const color = fac.getColor(videoEl);
       setBgcolor(color.hex);
     };
 
-    video.addEventListener("play", () => {
+    const onPlay = () => {
       interval = setInterval(updateColor, 1000);
-    });
-
-    video.addEventListener("pause", () => {
+    };
+    const onPause = () => {
       clearInterval(interval);
       setBgcolor("#ffffff");
-    });
-    video.addEventListener("ended", () => clearInterval(interval));
+    };
+    const onEnded = () => clearInterval(interval);
 
-    return () => clearInterval(interval);
-  }, [selectedMeetArray, fac]);
-  const videoLink = selectedMeetArray?._id
-    ? selectedMeetArray.media.videoLink
-    : null;
-  const images = selectedMeetArray?._id ? selectedMeetArray.media.images : [];
+    videoEl.addEventListener("play", onPlay);
+    videoEl.addEventListener("pause", onPause);
+    videoEl.addEventListener("ended", onEnded);
+
+    return () => {
+      clearInterval(interval);
+      videoEl.removeEventListener("play", onPlay);
+      videoEl.removeEventListener("pause", onPause);
+      videoEl.removeEventListener("ended", onEnded);
+    };
+  }, [fac]);
+
+ 
+  useEffect(() => {
+    if (selectedMeetArray?._id) {
+      setVideo((prev) =>
+        prev !== selectedMeetArray.media.videoLink
+          ? selectedMeetArray.media.videoLink
+          : prev
+      );
+      setImages((prev) =>
+        prev !== selectedMeetArray.media.images ? selectedMeetArray.media.images : prev
+      );
+    } else {
+      setVideo(null);
+      setImages([]);
+    }
+  }, [selectedMeetArray]);
   return (
     <div
-      className={`w- relative h-screen no-scrollbar overflow-auto px-20   bg-[#f5f6fa]
- flex flex-col items-center py-10 `}
+      className={`relative h-screen no-scrollbar overflow-auto
+              px-4 sm:px-8 lg:px-20 bg-[#f5f6fa] 
+              flex flex-col items-center py-6 sm:py-10`}
     >
-      {/* <div className="absolute top-10 text-2xl text-red-500 hover:text-red-700 hover:rotate-90 transform-all duration-200 right-10">
-            <IoClose/>
-        </div>
-      <div className="w-full max-w-6xl px-4">
-        <h2 className="text-3xl font-extrabold text-red-600 mb-6 text-center">
-          🎥 Video Highlight
-        </h2>
+      <div
+        onClick={() => setIsMediaUploadModelOpen(false)}
+        className={`absolute choose-fileType-model overflow-hidden w-full h-full flex justify-center items-center 
+              bg-black/30 backdrop-blur-sm z-20 top-0 left-0 transition-opacity duration-500
+              ${
+                isMediaUploadModelOpen
+                  ? "opacity-100 visible"
+                  : "opacity-0 invisible"
+              }`}
+      >
+        <div className="w-full h-full relative">
+          <div
+            className={`w-72 sm:w-80 bg-white absolute -translate-x-1/2 -translate-y-1/2 
+                  left-1/2 rounded-2xl shadow-2xl p-6 flex flex-col items-center gap-6 
+                  transition-all duration-500
+                  ${isMediaUploadModelOpen ? "top-1/2" : "top-[150%]"}`}
+          >
+            {!isVideoSelected && !isImagesSelected && (
+              <h2 className="text-lg font-semibold text-red-600">
+                Choose File Type
+              </h2>
+            )}
 
-        <div
-          className="relative w-full h-[420px] rounded-2xl overflow-hidden shadow-2xl border border-red-100"
-          style={{
-            boxShadow: `0 0 40px 10px ${bgcolor}`,
-          }}
-        >
-          {videoLink ? (
-            <video
-              ref={videoRef}
-              crossOrigin="anonymous"
-              className="w-full h-full object-cover rounded-2xl"
-              controls
+            <div className="flex justify-center gap-10 text-red-600">
+              {((!isImagesSelected && !isVideoSelected) ||
+                (isImagesSelected && !isVideoSelected)) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    mediaRef.current.accept = "image/*";
+                    mediaRef.current.multiple = true;
+
+                    mediaRef.current.click();
+                  }}
+                  className="flex flex-col items-center gap-2 hover:text-red-700 transition-colors"
+                >
+                  <div
+                    className={`w-14 h-14 flex items-center justify-center ${
+                      mobileViewImages.length > 0
+                        ? "bg-green-100 hover:bg-red-200 text-green-500"
+                        : "bg-red-100 hover:bg-red-200"
+                    }  rounded-full  transition-colors`}
+                  >
+                    <IoMdImages size={28} />
+                  </div>
+                  <span
+                    className={`text-sm font-medium ${
+                      mobileViewImages.length > 0 ? " text-green-500" : ""
+                    } `}
+                  >
+                    {mobileViewImages.length} Image
+                  </span>
+                </button>
+              )}
+
+              {((!isImagesSelected && !isVideoSelected) ||
+                (isVideoSelected && !isImagesSelected)) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    mediaRef.current.accept = "video/*";
+                    mediaRef.current.multiple = false;
+
+                    mediaRef.current.click();
+                  }}
+                  className="flex flex-col items-center gap-2 hover:text-red-700 transition-colors"
+                >
+                  <div className="w-14 h-14 flex items-center justify-center bg-red-100 rounded-full hover:bg-red-200 transition-colors">
+                    <FaVideo size={28} />
+                  </div>
+                  <span className="text-sm font-medium">Video</span>
+                </button>
+              )}
+            </div>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setMobileViewImages([]);
+                setMobileViewVideo(null);
+                setIsVideoSelected(false);
+                setIsImagesSelected(false);
+              }}
+              className="gap-4 flex "
             >
-              <source src={videoLink} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          ) : (
-            <p className="flex items-center justify-center h-full text-gray-600">
-              No video available
-            </p>
-          )}
-
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+              {(isVideoSelected || isImagesSelected) && (
+                <button className="text-md font-semibold text-red-600 border-[.01rem] px-3 py-1 rounded-full">
+                  Reset
+                </button>
+              )}
+              {(isVideoSelected || isImagesSelected) && (
+                <button
+                  onClick={handleMobileViewMediaSubmit}
+                  className="text-md font-semibold text-green-600 border-[.01rem] px-3 py-1 rounded-full"
+                >
+                  Submit
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="w-40 h-1 bg-red-600 rounded-full my-12"></div>
+      <Header
+        values={{
+          toggle,
+          mediaInputFields,
+          isDesktop,
+          isMobile,
+          mediaRef,
+          video,
+          mobileViewImages,
+          mobileViewVideo,
+          isVideoSelected,
+          isImagesSelected,
+        }}
+        setters={{
+          setToggle,
+          setIsGalleryOpen,
+          handleMediaUpdate,
+          setIsMediaUploadModelOpen,
+          setVideo,
+          handleMobileMediaChange,
+        }}
+      />
+      <hr className="w-full border-red-700 mt-4 sm:mt-5" />
 
-      <div className="w-full max-w-6xl px-4">
-        <h2 className="text-3xl font-extrabold text-red-600 mb-10 text-center">
-          📸 Memories Captured
-        </h2>
-
-        <div className="columns-1 sm:columns-2 md:columns-3 gap-6 space-y-6">
-          {images.map((image, index) => (
-            <div
-              key={index}
-              className="relative overflow-hidden rounded-xl shadow-lg hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
-            >
-              <img
-                src={image.image}
-                alt={`Alumni Memory ${index + 1}`}
-                className="w-full object-cover rounded-xl"
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center text-white font-semibold text-lg transition-opacity duration-300">
-                Alumni Meet {index + 1}
-              </div>
-            </div>
-          ))}
+      {isDesktop ? (
+        !toggle ? (
+          isGalleryOpen && (
+            <Video
+              key={video}
+              values={{ videoLink: video, bgcolor, toggle, videoRef }}
+            />
+          )
+        ) : (
+          <Images
+            key={images}
+            values={{ images, imageIds }}
+            setters={{ setImageIds }}
+          />
+        )
+      ) : (
+        <div className=" mb-10 no-scrollbar ">
+          {isGalleryOpen && (
+            <Video
+              key={video}
+              values={{ videoLink: video, bgcolor, toggle, videoRef }}
+            />
+          )}
+          <Images
+            key={images}
+            values={{ images, imageIds }}
+            setters={{ setImageIds }}
+          />
         </div>
-      </div> */}
-
-      <Header values={{ toggle  }} setters={{ setToggle , setIsGalleryOpen }} />
-      <hr className="w-full border-red-700 mt-5" />
-      {!toggle? <Video values={{ videoLink, bgcolor, toggle , videoRef }}/> : <Images values={{images}}/>}
+      )}
     </div>
   );
 }

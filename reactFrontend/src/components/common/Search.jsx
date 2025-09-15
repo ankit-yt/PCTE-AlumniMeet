@@ -8,7 +8,26 @@ import { useSelector } from "react-redux";
 import GalleryModel from "../plan meet components/GalleryModel";
 
 function Search({ handleDelete, values, setters }) {
-  const { section , search, list, clickedItem, isAction, isAdding , isGalleryOpen} = values;
+  const {
+    section,
+    Step,
+    search,
+    list,
+    clickedItem,
+    isAction,
+    isAdding,
+    isGalleryOpen,
+    mediaInputFields,
+    imageIds,
+    mobileViewImages,
+    mobileViewVideo,
+    isVideoSelected,
+    isImagesSelected,
+    isMediaUploadModelOpen,
+    meetId,
+    allMeets,
+  } = values;
+
   const {
     setShowDeleteConfirm,
     setDeletingAlumniId,
@@ -18,9 +37,20 @@ function Search({ handleDelete, values, setters }) {
     setIsAction,
     setIsAdding,
     setIsGalleryOpen,
+    setStep,
+    handleMediaUpdate,
+    setImageIds,
+    handleMobileMediaChange,
+    setIsMediaUploadModelOpen,
+    setMobileViewImages,
+    setMobileViewVideo,
+    setIsVideoSelected,
+    setIsImagesSelected,
+    handleMobileViewMediaSubmit,
   } = setters;
-  const {isTablet ,screenWidth, isMobile , isDesktop} = useSelector(state=>state.ui)
-  console.log(isDesktop, screenWidth)
+
+  const { isTablet, screenWidth, isDesktop } = useSelector((state) => state.ui);
+  console.log(isDesktop, screenWidth);
   const [RpProfile, setRpProfile] = useState("");
   const [RpName, setRpName] = useState("");
   const [Rpquote, setRpQuote] = useState("");
@@ -33,8 +63,8 @@ function Search({ handleDelete, values, setters }) {
   const [RpcareerTimeline, setRpCareerTimeline] = useState([{}]);
 
   //states for meet right panel
-  const [selectedMeetArray, setSelectedMeetArray] = useState([])
 
+  const [selectedMeetArray, setSelectedMeetArray] = useState([]);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   return (
@@ -42,10 +72,11 @@ function Search({ handleDelete, values, setters }) {
       {/* 🔍 Search Bar & Header */}
       <div className="w-full relative    px-10 py-4 flex flex-col gap-4">
         <div
-          className={`z-10 absolute md:-top-6 -top-20 w-80 h-[100vh] right-0 transform ${isRightPanelOpen
+          className={`z-10 absolute md:-top-6 -top-20 w-80 h-[100vh] right-0 transform ${
+            isRightPanelOpen
               ? " md:translate-x-8"
               : "md:translate-x-[30vw] translate-x-full"
-            } transition-transform duration-300 mt-1 rounded-l-2xl`}
+          } transition-transform duration-300 mt-1 rounded-l-2xl`}
         >
           <RightBar
             values={{
@@ -63,22 +94,54 @@ function Search({ handleDelete, values, setters }) {
               Rpachievement,
               RpcareerTimeline,
               setIsRightPanelOpen,
-              selectedMeetArray
+              selectedMeetArray,
+              meetId,
+              allMeets,
             }}
           />
         </div>
-        <div style={{ width: "calc(100vw - 16rem)" }}
- className={` ${isGalleryOpen ? 'translate-x-0 opacity-100' : 'translate-x-320 opacity-0' } h-[100vh] z-10 absolute -top-6 transition-all duration-400 -right-5`}>
-          <GalleryModel
-          values={{
-            selectedMeetArray,
-          }}
-          setters={{setIsGalleryOpen}}
-          />
-        </div>
+        {section === "planMeet" && (
+          <div
+            className={`
+    fixed top-0 right-0 h-screen z-50 
+    bg-white shadow-lg transition-all duration-500 
+    ${
+      isGalleryOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+    }
+    w-full sm:w-[calc(100vw-16rem)]
+  `}
+          >
+            <GalleryModel
+              values={{
+                selectedMeetArray,
+                mediaInputFields,
+                imageIds,
+                isGalleryOpen,
+                mobileViewImages,
+                mobileViewVideo,
+                isVideoSelected,
+                isImagesSelected,
+                isMediaUploadModelOpen,
+                meetId,
+                allMeets,
+              }}
+              setters={{
+                setIsGalleryOpen,
+                handleMediaUpdate,
+                setImageIds,
+                handleMobileMediaChange,
+                setIsMediaUploadModelOpen,
+                setMobileViewImages,
+                setMobileViewVideo,
+                setIsVideoSelected,
+                setIsImagesSelected,
+                handleMobileViewMediaSubmit,
+              }}
+            />
+          </div>
+        )}
 
         <div className=" search md:w-1/2   h-12  bg-white/90 rounded-full flex items-center px-4 shadow-lg border border-red-200 backdrop-blur-sm transition-all hover:shadow-red-200">
-          {/* Search Icon */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -94,7 +157,6 @@ function Search({ handleDelete, values, setters }) {
             />
           </svg>
 
-          {/* Input */}
           <input
             type="text"
             value={search}
@@ -104,7 +166,6 @@ function Search({ handleDelete, values, setters }) {
           />
         </div>
 
-        {/* Title & Add Button */}
         <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <h1 className="text-xl sm:text-2xl font-bold text-red-600 tracking-wide text-center sm:text-left">
             🎓 Alumni Directory
@@ -113,6 +174,7 @@ function Search({ handleDelete, values, setters }) {
           <button
             onClick={() => {
               console.log("clicked");
+              setImageIds([]);
               setIsAdding(!isAdding);
               setters.setIsEditing(false);
               setters.setname("");
@@ -145,8 +207,8 @@ function Search({ handleDelete, values, setters }) {
         </div>
       </div>
 
-      {/* 📊 Table */}
-      {(isTablet || isDesktop) ? (
+      {/*  Table */}
+      {isTablet || isDesktop ? (
         <AlumniListDesk
           props={{
             selectedMeetArray,
@@ -176,12 +238,16 @@ function Search({ handleDelete, values, setters }) {
             search,
             setShowDeleteConfirm,
             setDeletingAlumniId,
-            setDeletingMeetId
+            setDeletingMeetId,
+            setStep,
+            Step,
+            setImageIds,
           }}
         />
       ) : (
         <AlumniListMobile
           props={{
+            selectedMeetArray,
             section,
             list,
             setClickedItem,
@@ -190,6 +256,7 @@ function Search({ handleDelete, values, setters }) {
             isAction,
             setIsAction,
             setters,
+            setSelectedMeetArray,
             setRpProfile,
             setRpAchievement,
             setRpBatch,
@@ -207,6 +274,10 @@ function Search({ handleDelete, values, setters }) {
             search,
             setShowDeleteConfirm,
             setDeletingAlumniId,
+            setDeletingMeetId,
+            setStep,
+            Step,
+            setImageIds,
           }}
         />
       )}

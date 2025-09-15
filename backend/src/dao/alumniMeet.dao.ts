@@ -3,6 +3,8 @@ import alumniModel from "../model/alumni.model";
 import alumniMeetModel from "../model/alumniMeet.model";
 import { AlumniInput, AlumniMeetInput } from "../types/interface";
 import { Alumni, alumniMeetDocument } from "../types/model.interface";
+import { ValidationError } from "../utility/customErrors";
+import { deleteFromCloudinary } from "../utility/cloudnaryDeletion";
 
 // good
 export const getAllAlumniDao = async (): Promise<Alumni[]> => {
@@ -132,7 +134,7 @@ export const updateAlumniDao = async (
   data: AlumniInput
 ): Promise<Alumni | null> => {
   try {
-    if (mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid Alumni Id format");
     }
     const updatedAlumni = await alumniModel.findByIdAndUpdate(id, data, {
@@ -200,6 +202,66 @@ export const updateAlumniMeetDao = async (
     );
   }
 };
+
+export const updateMeetMediaDao = async(images:[] , video:string , videoId:string , id:string)=>{
+  try{
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid Meet Id format");
+    }
+  const meet = await alumniMeetModel.findById(id)
+   if (!meet) {
+      throw new Error("Alumni Meet not found");
+    }
+   if (images && images.length > 0) {
+    images.forEach((img) => {
+      meet?.media.images.push(img);
+    });
+   
+  }
+
+   if(video){
+     if (meet.media.videoId) {
+      console.log(meet.media.videoId)
+    await deleteFromCloudinary(meet.media.videoId , "video");
+  }
+      meet.media.videoLink = video;
+    meet.media.videoId = videoId;
+    }
+    await meet.save();
+
+    return meet
+  }catch(err:any){
+     if (err instanceof mongoose.Error.CastError) {
+      throw new Error("Invalid Neet ID format");
+    }
+    if (err instanceof mongoose.Error.ValidationError) {
+      throw new Error(`Validation Error: ${err.message}`);
+    }
+    throw new Error(
+      `Database error while updating Alumni Meet Media: ${err.message}`
+    );
+  }
+
+}
+
+export const deleteMeetMediaDao = async(imageIds:string[] , id:string)=>{
+  try{
+    if(mongoose.Types.ObjectId.isValid(id)){
+    throw new Error("Invalid Meet Id format");
+  }
+  const meet = await alumniMeetModel.findById(id)
+  if(!meet){
+    throw new Error("Alumni Meet not found");
+  }
+  if(imageIds && imageIds.length>0){
+    await deleteFromCloudinary(imageIds,)
+  }
+  }catch(err:any){
+    throw new Error(
+      `Database error while deleting Alumni Meet Media: ${err.message}`
+    )
+  }
+}
 
 export const deleteAlumniMeetDao = async (id: string): Promise<alumniMeetDocument> => {
   try {

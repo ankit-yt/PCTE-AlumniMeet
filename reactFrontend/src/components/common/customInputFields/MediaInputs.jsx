@@ -1,16 +1,21 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { CiImageOn } from "react-icons/ci";
 import { CiVideoOn } from "react-icons/ci";
 import { IoCheckmark } from "react-icons/io5";
 
 
 function MediaInputs({mediaInputFields , setters , values}) {
-    const {isImagesSelected , isVideoSelected} = values
+    const {isImagesSelected , isVideoSelected , isVideoUploaded , isImagesUploaded , videoRef , imageRef} = values
     const {setIsImagesSelected , setIsVideoSelected} = setters
+   useEffect(()=>{
+     console.log('is images uploaded' , isImagesUploaded)
+    console.log('is video uploaded', isVideoUploaded)
+   },[isImagesUploaded , isVideoUploaded])
   return (
    <div className="space-y-6">
        {mediaInputFields.map((field, index) => (
-         <div key={index} className="w-full">
+         <div key={index} className={`w-full ${(field.label === "Images" && isImagesUploaded) ? "hidden" : ''} ${(field.label === 'Video' && isVideoUploaded ) ? 'hidden' : ''}`} ref={field.label === 'video' ? videoRef : imageRef}>
+          
            {/* Label */}
            <label
              htmlFor={field.label}
@@ -50,7 +55,7 @@ function MediaInputs({mediaInputFields , setters , values}) {
     }
   }}
 >
-  <div className="text-center">
+  <div className={`text-center `}>
     {/* Uploaded state */}
     {(field.label === "Images" && isImagesSelected) ||
     (field.label === "Video" && isVideoSelected) ? (

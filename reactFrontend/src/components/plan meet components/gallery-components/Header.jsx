@@ -1,35 +1,78 @@
 import React from "react";
-import { IoClose } from "react-icons/io5";
+import { IoClose, IoAdd } from "react-icons/io5";
+
 function Header({ values, setters }) {
-  const { toggle } = values;
-  const { setToggle, setIsGalleryOpen } = setters;
+  const {
+    toggle,
+    mediaInputFields,
+    isDesktop,
+    isMobile,
+    mediaRef,
+    mobileViewImages,
+    mobileViewVideo,
+    isVideoSelected,
+    isImagesSelected,
+  } = values;
+  const {
+    setToggle,
+    setIsGalleryOpen,
+    handleMediaUpdate,
+    setIsMediaUploadModelOpen,
+    setvideo,
+    handleMobileMediaChange,
+  } = setters;
+  console.log(isMobile, isDesktop);
+
   return (
-    <div className=" mr-auto flex justify-between px-5 w-full ">
+    <div className="mr-auto flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-6 w-full gap-4 sm:gap-0">
+      {/* Title + Description */}
       <div>
-        <h1 className="font-bold text-2xl text-red-700">Meet's Memories</h1>
-        <div>
-          <p className="text-gray-500 mt-1 text-xs">
-            {toggle
-              ? "Experience the event through our captured videos and highlights."
-              : "A collection of moments that connect hearts, friendships, and stories."}
-          </p>
-        </div>
+        <h1 className="font-bold text-xl sm:text-2xl text-red-700">
+          Meet's Memories
+        </h1>
+        <p className="text-gray-500 mt-1 text-xs sm:text-sm max-w-md">
+          {toggle
+            ? "Experience the event through our captured videos and highlights."
+            : "A collection of moments that connect hearts, friendships, and stories."}
+        </p>
       </div>
-      <div className="flex justify-center items-center gap-10">
+
+      {/* Right Side Actions */}
+      <div className="flex justify-center items-center gap-6 sm:gap-10 self-end sm:self-auto">
+        <label
+          htmlFor={
+            isDesktop
+              ? toggle
+                ? mediaInputFields[0].label
+                : mediaInputFields[1].label
+              : ""
+          }
+          onClick={() => {
+            if (isMobile) {
+              console.log("clicked");
+              setIsMediaUploadModelOpen(true);
+            }
+          }}
+          className="relative flex items-center p-1  bg-white border-2 border-green-500 text-green-500 rounded-full cursor-pointer transition-colors duration-300 shadow-md"
+        >
+          <IoAdd size={26} className="sm:size-9" />
+        </label>
+
         <div
           onClick={() => setToggle(!toggle)}
-          className="relative flex items-center w-29 h-12 bg-white border-2 border-red-500 rounded-full cursor-pointer transition-colors duration-300 shadow-md"
+          className="hidden sm:flex relative items-center w-28 h-12 bg-white border-2 border-red-500 rounded-full cursor-pointer transition-colors duration-300 shadow-md"
         >
-          {/* Sliding Ball */}
           <div
-            className={`absolute  left-1 w-10 h-10 rounded-full bg-red-500 flex items-center justify-center text-white text-lg shadow-lg transform transition-all duration-300 ${
-              toggle ? "translate-x-[4.05rem] bg-red-600" : "translate-x-0"
-            }`}
+            className={`absolute left-1 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg shadow-lg transform transition-all duration-300 
+              ${
+                toggle
+                  ? "translate-x-[3.81rem] bg-red-600"
+                  : "translate-x-0 bg-red-500"
+              }`}
           >
             {toggle ? "📸" : "🎥"}
           </div>
 
-          {/* Labels */}
           <div className="flex justify-between w-full px-4 text-red-600 font-semibold text-sm select-none">
             <span
               className={`${
@@ -47,10 +90,29 @@ function Header({ values, setters }) {
             </span>
           </div>
         </div>
-        <div onClick={()=>setIsGalleryOpen(false)} className="text-red-500 w-10 h-fit flex justify-center items-center hover:text-red-700 hover:rotate-90 transition-all duration-300">
-          <IoClose size={20} className="" />
+
+        <div
+          onClick={() => setIsGalleryOpen(false)}
+          className="text-red-500 w-10 h-fit flex justify-center items-center hover:text-red-700 hover:rotate-90 transition-all duration-300"
+        >
+          <IoClose size={20} />
         </div>
       </div>
+
+      {/* Hidden File Input */}
+      <input
+        ref={mediaRef}
+        type="file"
+        className="hidden"
+        id={toggle ? mediaInputFields[0].label : mediaInputFields[1].label}
+        multiple={
+          toggle ? mediaInputFields[0].multiple : mediaInputFields[1].multiple
+        }
+        accept={
+          toggle ? mediaInputFields[0].accept : mediaInputFields[1].accept
+        }
+        onChange={isMobile ? (e)=>handleMobileMediaChange(e) : (e) => handleMediaUpdate(e, toggle)}
+      />
     </div>
   );
 }

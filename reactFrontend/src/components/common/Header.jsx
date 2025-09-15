@@ -4,8 +4,8 @@ import { FiSearch } from "react-icons/fi";
 import { RiResetLeftFill } from "react-icons/ri";
 
 function Header({value , setters , handleReset}) {
-    const {isEditing , errorMessage ,title1 , description1 , title2 , description2 , triggerReset} = value;
-    const {setErrorMessage , setIsAdding , setTriggerReset} = setters
+    const {isEditing , errorMessage ,title1 ,section, description1 , title2 , description2 , triggerReset} = value;
+    const {setErrorMessage , setIsAdding , setTriggerReset , setIsSeaching} = setters
     const {isDesktop , isTablet} = useSelector(state=>state.ui)
   return (
     <>
@@ -37,7 +37,12 @@ function Header({value , setters , handleReset}) {
                 </button>
     
                 <button
-                  onClick={() => setIsAdding(false)}
+                  onClick={() => {
+                    if(section === 'planMeet'){
+                  
+                      setIsSeaching(false)
+                    }
+                    setIsAdding(false)}}
                   className="group relative md:w-14 md:h-14 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-pink-500 shadow-md hover:shadow-lg hover:shadow-red-200 transition-all duration-300 cursor-pointer focus:outline-none"
                 >
                   <span className="absolute inset-0 rounded-full bg-white/10 blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></span>

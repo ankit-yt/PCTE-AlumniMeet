@@ -3,10 +3,10 @@ import MobileHeader from "./mobileBasedForm/mobileHeader";
 import ImageField from "./mobileBasedForm/imageField";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { IoAdd } from "react-icons/io5";
-import CareerTimelineInput from "./customInputFields/CareerTimelineInput";
-import AchievementInput from "./customInputFields/AchievementInput";
+import CareerTimelineInput from "../common/customInputFields/CareerTimelineInput";
+import AchievementInput from "../common/customInputFields/AchievementInput";
 
-import MediaInputs from "../plan meet components/customInputFields/MediaInputs";
+import MediaInputs from "../common/customInputFields/MediaInputs";
 
 function Card2({
   values,
@@ -32,10 +32,14 @@ function Card2({
     previewURL,
     inputFields,
     mediaInputFields,
-    isVideoSelected, 
+    isVideoSelected,
     isImagesSelected,
     newClass,
     classJoined,
+    isVideoUploaded,
+    isImagesUploaded,
+    videoRef,
+    imageRef,
   } = values;
 
   const {
@@ -51,10 +55,10 @@ function Card2({
     setAchievement,
     setNewAch,
     setProfilePic, // pass from parent so mobile upload can update photo
-    setIsImagesSelected, 
+    setIsImagesSelected,
     setIsVideoSelected,
     setNewClass,
-    setClassJoined
+    setClassJoined,
   } = setters;
 
   // helper fallback if handleImageChange isn't provided
@@ -66,6 +70,9 @@ function Card2({
 
   // progress width for mobile step bar
   const progressWidth = Step === 1 ? "50%" : "100%";
+
+  console.log("printing step number")
+  console.log(Step)
 
   return (
     <div
@@ -111,66 +118,81 @@ function Card2({
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {inputFields.map(
-  ({ label, type, value, setter, required, options }, i) => (
-    <div key={i} className="flex flex-col">
-      <label className="text-xs md:text-sm text-gray-700 font-semibold mb-1 md:mb-2">
-        {label}
-      </label>
+                  ({ label, type, value, setter, required, options }, i) => (
+                    <div key={i} className="flex flex-col">
+                      <label className="text-xs md:text-sm text-gray-700 font-semibold mb-1 md:mb-2">
+                        {label}
+                      </label>
 
-      {type === "select" ? (
-        <select
-          value={value}
-          required={required}
-          onChange={(e) => setter(e.target.value)}
-          className="
+                      {type === "select" ? (
+                        <select
+                          value={value}
+                          required={required}
+                          onChange={(e) => setter(e.target.value)}
+                          className="
             rounded-xl md:rounded-full  bg-gray-50 border border-gray-300
             px-3 md:px-4 py-2 md:py-3  text-sm md:text-base
             focus:outline-none focus:ring-2 focus:ring-red-400
             transition-all
           "
-        >
-          <option value="">Select {label}</option>
-          {options?.map((opt, idx) => (
-            <option key={idx} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <input
-          type={type}
-          value={value}
-          required={required}
-          onChange={(e) => setter(e.target.value)}
-          placeholder={`Enter ${label}`}
-          className="
+                        >
+                          <option value="">Select {label}</option>
+                          {options?.map((opt, idx) => (
+                            <option key={idx} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={type}
+                          value={value}
+                          required={required}
+                          onChange={(e) => setter(e.target.value)}
+                          placeholder={`Enter ${label}`}
+                          className="
             rounded-xl md:rounded-full bg-gray-50 border border-gray-300
             px-3 md:px-4 py-2 md:py-3 text-sm md:text-base
             focus:outline-none focus:ring-2 focus:ring-red-400
             transition-all
           "
-        />
-      )}
-    </div>
-  )
-)}
-                
+                        />
+                      )}
+                    </div>
+                  )
+                )}
               </div>
-              {section === 'planMeet' && <AchievementInput values={{ newAch:newClass, achievement:classJoined  , title:"Classes Joined" ,placeholder:"Add class" }} setters={{setNewAch:setNewClass , setAchievement:setClassJoined}}/>}
+              {section === "planMeet" && (
+                <AchievementInput
+                  values={{
+                    newAch: newClass,
+                    achievement: classJoined,
+                    title: "Classes Joined",
+                    placeholder: "Add class",
+                  }}
+                  setters={{
+                    setNewAch: setNewClass,
+                    setAchievement: setClassJoined,
+                  }}
+                />
+              )}
             </div>
 
-            {/* Desktop next button  */}
             <div className="hidden md:flex md:justify-end mt-4">
-              
               <button
-                onClick={() => setStep(2)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  if(!(isImagesUploaded && isVideoUploaded)){
+                    setStep(2)
+                  }
+                }}
                 className="
                   flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-400
                   hover:from-red-700 hover:to-red-500 text-white py-3 px-6
                   rounded-full shadow-lg text-sm font-semibold tracking-wide
                 "
               >
-                Next
+                {(isImagesUploaded && isVideoUploaded) ? 'Submit' : 'Next'}
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -190,7 +212,7 @@ function Card2({
         )}
 
         {/* ===== STEP 2 ===== */}
-        {Step === 2 && (
+        {!(isVideoUploaded && isImagesUploaded ) && Step === 2 && (
           <>
             {section === "AddAlumni" && (
               <CareerTimelineInput
@@ -201,13 +223,29 @@ function Card2({
 
             {section === "AddAlumni" && (
               <AchievementInput
-                values={{ newAch, achievement , title:'Achievements' , placeholder:"New Achievement" }}
+                values={{
+                  newAch,
+                  achievement,
+                  title: "Achievements",
+                  placeholder: "New Achievement",
+                }}
                 setters={{ setNewAch, setAchievement }}
               />
             )}
 
             {section === "planMeet" && (
-              <MediaInputs mediaInputFields={mediaInputFields} setters={{setIsImagesSelected , setIsVideoSelected}} values={{isImagesSelected  , isVideoSelected}} />
+              <MediaInputs
+                mediaInputFields={mediaInputFields}
+                setters={{ setIsImagesSelected, setIsVideoSelected }}
+                values={{
+                  isImagesSelected,
+                  isVideoSelected,
+                  isImagesUploaded,
+                  isVideoUploaded,
+                  videoRef,
+                  imageRef,
+                }}
+              />
             )}
 
             {/* Desktop nav buttons */}
@@ -220,7 +258,7 @@ function Card2({
                 <IoChevronBackOutline /> Back
               </button>
               <button
-             onClick={isEditing ? handleUpdate : handleSubmit}
+                onClick={isEditing ? handleUpdate : handleSubmit}
                 className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-400 hover:from-green-600 hover:to-green-500 text-white font-medium py-2 px-6 rounded-full shadow-md"
               >
                 Submit Alumni
@@ -240,6 +278,7 @@ function Card2({
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
+                  if(!(isImagesUploaded && isVideoUploaded))
                   setStep(2);
                 }}
                 className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-semibold"

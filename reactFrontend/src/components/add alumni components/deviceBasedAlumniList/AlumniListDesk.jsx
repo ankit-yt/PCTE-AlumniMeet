@@ -28,6 +28,9 @@ function AlumniListDesk({ props }) {
     setShowDeleteConfirm,
     setDeletingAlumniId,
     setDeletingMeetId,
+    setStep,
+    Step,
+    setImageIds
   } = props;
   return (
     <div className="w-full flex-1 overflow-auto px-10 pb-6">
@@ -75,6 +78,9 @@ function AlumniListDesk({ props }) {
                         setRpLinkedIn(alumni.linkedIn);
                         setRpAchievement(alumni.achievements);
                         setRpCareerTimeline(alumni.careerTimeline);
+                        if(section === 'planMeet'){
+                          setImageIds([])
+                        }
                         setIsRightPanelOpen(true);
                       }}
                       key={index}
@@ -118,6 +124,9 @@ function AlumniListDesk({ props }) {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+
+                                setStep(1);
+                                  console.log(Step)
                                 setters.setname(alumni.name);
                                 setters.setBatch(alumni.batch);
                                 setters.setCurrentCompany(
@@ -195,6 +204,7 @@ function AlumniListDesk({ props }) {
                 .map((meet, index) => (
                   <tr
                     onClick={() => {
+                      setters.setMeetId(meet._id)
                       setSelectedMeetArray(meet);
                       setIsRightPanelOpen(true);
                     }}
@@ -266,24 +276,35 @@ function AlumniListDesk({ props }) {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              
+                                setStep(1);
                               setters.setTitle(meet.title);
-                              console.log(setters)
                               setters.setAlumniName(meet.alumni[0].name);
-                              setters.setDate(new Date(meet.time).toISOString().slice(0,16));
+                              setters.setDate(
+                                new Date(meet.time).toISOString().slice(0, 16)
+                              );
                               setters.setLocation(meet.location);
-                              setters.setMeetId(meet._id)
-                              console.log(meet._id)
-                              setters.setClassJoined(meet.classJoined)
+                              setters.setMeetId(meet._id);
+                              setters.setClassJoined(meet.classJoined);
                               setters.setOrganizedBy(meet.organizedBy);
                               setters.setDescription(meet.description);
                               setters.setAlumni(meet.alumni[0]._id);
-                              console.log(meet.alumni)
-                              setters.setPreviewURL(meet.alumni[0].profilePic)
+                              setters.setPreviewURL(meet.alumni[0].profilePic);
                               setters.setUpdatingMeetId(meet._id);
                               setters.setIsEditing(true);
                               setClickedItem(-1);
                               setIsAction(false);
-                              
+                              if (meet.media.images.length != 0) {
+                                setters.setIsImagesUploaded(true);
+                              } else {
+                                setters.setIsImagesUploaded(false);
+                              }
+                              if (meet.media.videoLink) {
+                                setters.setIsVideoUploaded(true);
+                              } else {
+                                setters.setIsVideoUploaded(false);
+                              }
+
                               setIsAdding(!isAdding);
                               setSearch("");
                             }}
@@ -294,7 +315,7 @@ function AlumniListDesk({ props }) {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log("clicked")
+                              console.log("clicked");
                               setShowDeleteConfirm(true);
                               setDeletingMeetId(meet._id);
                               setClickedItem(-1);

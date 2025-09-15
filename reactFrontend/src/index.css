@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 .glass-cardd {
   background: rgba(255, 255, 255, 0.15); /* Light transparent white */
   backdrop-filter: blur(15px) saturate(180%); /* Frosted glass blur */
@@ -31,3 +35,4 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;     /* Firefox */
 }
+

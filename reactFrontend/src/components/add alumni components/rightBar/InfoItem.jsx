@@ -10,7 +10,7 @@ const InfoItem = ({ icon, label, value }) => (
 
     {/* Text */}
     <span className="text-gray-800 dark:text-gray-100 text-sm">
-      <strong className="font-semibold text-gray-900 dark:text-white">
+      <strong className="font-semibold text-gray-900 ">
         {label}:
       </strong>{" "}
       <span className="text-gray-600 dark:text-gray-300 group-hover:text-red-500 transition-colors duration-300">

@@ -1,43 +1,68 @@
-import React from 'react'
+import React from "react";
 
-function Images({values}) {
-    const {images} = values
+function Images({ values, setters }) {
+  const { images, imageIds } = values;
+  const { setImageIds } = setters;
+
+  const toggleSelect = (imageId) => {
+    if (imageIds.includes(imageId)) {
+      setImageIds(imageIds.filter((id) => id !== imageId));
+    } else {
+      setImageIds([...imageIds, imageId]);
+    }
+  };
+
   return (
-    <div className="w-full max-w-6xl px-4 mt-20">
-  <div className="columns-1 sm:columns-2 md:columns-3 gap-6 space-y-6">
-    {images.map((image, index) => (
-      <div
-        key={index}
-        className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer"
-      >
-        {/* 📸 Image */}
-        <img
-          src={image.image}
-          alt={`Alumni Memory ${index + 1}`}
-          className="w-full object-cover rounded-2xl transform group-hover:scale-105 transition-transform duration-500"
-        />
+    <div className="w-full relative  max-w-6xl px-2 sm:px-4 mt-6 sm:mt-10 ">
+      <div className="columns-2 -w-full sm:columns-3 lg:columns-4 gap-3 sm:gap-6">
+        {images.map((image, index) => {
+          const isSelected = imageIds.includes(image.imageId);
 
-        {/* 🖼 Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+          return (
+            <div
+              key={index}
+              className={`mb-3 break-inside-avoid  group relative overflow-hidden 
+                          rounded-xl shadow-md hover:shadow-xl 
+                          transition-all duration-500 cursor-pointer ${
+                            isSelected ? "ring-2 ring-red-500" : ""
+                          }`}
+              onClick={() => toggleSelect(image.imageId)}
+            >
+              <img
+                src={image.image}
+                alt={`Memory ${index + 1}`}
+                className="w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-105"
+              />
 
-        {/* 📍 Caption */}
-        <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transform translate-y-6 group-hover:translate-y-0 transition-all duration-500">
-          <h3 className="text-lg font-bold tracking-wide drop-shadow-lg">
-            Alumni Meet {index + 1}
-          </h3>
-          <p className="text-sm text-gray-200 italic">
-            Cherished memories captured forever
-          </p>
-        </div>
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent 
+                              opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-        {/* 🎨 Red Accent Border */}
-        <div className="absolute inset-0 rounded-2xl ring-2 ring-transparent group-hover:ring-red-500 transition duration-500 pointer-events-none"></div>
+              {/* Selected Mark */}
+              {isSelected && (
+                <div className="absolute top-2 right-2 w-6 h-6 sm:w-8 sm:h-8 bg-red-600 text-white 
+                                rounded-full flex items-center justify-center shadow-lg text-xs sm:text-sm">
+                  ✔
+                </div>
+              )}
+
+              {/* Caption (shown only on hover for desktop, always hidden on mobile) */}
+              <div className="hidden sm:block absolute bottom-4 left-4 right-4 text-white opacity-0 
+                              group-hover:opacity-100 transform translate-y-6 
+                              group-hover:translate-y-0 transition-all duration-500">
+                <h3 className="text-sm sm:text-base font-bold tracking-wide drop-shadow-lg">
+                  Alumni Meet {index + 1}
+                </h3>
+                <p className="text-xs text-gray-200 italic">
+                  Cherished memories captured forever
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
-    ))}
-  </div>
-</div>
-
-  )
+    </div>
+  );
 }
 
-export default Images
+export default Images;

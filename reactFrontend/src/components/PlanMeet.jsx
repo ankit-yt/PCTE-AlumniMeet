@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Header from "./common/Header";
 import FormCard from "./plan meet components/Form";
 import loading from "../../public/loader.json";
 import Lottie from "lottie-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Search from "./common/Search";
 import DeleteModel from "./common/DeleteModel";
-import { deleteMeet, updateMeet } from "../api/meet.api";
+import { deleteMeet, updateMeet, updateMeetMedia } from "../api/meet.api";
 import { toast } from "react-toastify";
 import { useOutletContext } from "react-router-dom";
+import { setMeetLoading } from "../redux/slices/loadingSlice";
 
 function PlanMeet() {
-  const {reFetch , setReFetch} = useOutletContext()
+  const dispatch = useDispatch();
+
+  const { reFetch, setReFetch } = useOutletContext();
   const allMeets = useSelector((state) => state.meet);
   const { meetLoading } = useSelector((state) => state.loading);
   const [isEditing, setIsEditing] = useState(false);
@@ -21,7 +24,7 @@ function PlanMeet() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [clickedMeet, setClickedMeet] = useState(-1);
   const [isAction, setIsAction] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   //form component states
   const [isSeaching, setIsSeaching] = useState(false);
@@ -39,8 +42,9 @@ function PlanMeet() {
   const [video, setVideo] = useState(null);
   const [description, setDescription] = useState("");
   const [previewURL, setPreviewURL] = useState("");
-  const [deletingMeetId, setDeletingMeetId] = useState('')
-  const [meetId, setMeetId] = useState('')
+  const [deletingMeetId, setDeletingMeetId] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [meetId, setMeetId] = useState("");
 
   const [isImagesSelected, setIsImagesSelected] = useState(false);
   const [isVideoSelected, setIsVideoSelected] = useState(false);
@@ -48,44 +52,184 @@ function PlanMeet() {
   //seach components states
   const [search, setSearch] = useState("");
 
-  const handleDeleteMeet = async(id)=>{
-    try{
-      await deleteMeet(id)
-      setReFetch(!reFetch)
-      toast.success("Meet Deleted Successfully")
-    }catch(e){
-      toast.error(e.message)
-    }
-  }
-  console.log("image url")
-  console.log(previewURL)
+  //checking is video and photos already uploaded in meet
+  const [isVideoUploaded, setIsVideoUploaded] = useState(false);
+  const [isImagesUploaded, setIsImagesUploaded] = useState(false);
 
-  const handleUpdate = async(e)=>{
+  //gallery component states
+  const [imageIds, setImageIds] = useState([]);
+
+  //gallery component states for mobile view
+  const [isMediaUploadModelOpen, setIsMediaUploadModelOpen] = useState(false);
+  const [mobileViewVideo, setMobileViewVideo] = useState(null);
+  const [mobileViewImages, setMobileViewImages] = useState([]);
+  const [filesSelected, setFilesSelected] = useState(false);
+
+  const handleDeleteMeet = async (id) => {
+    try {
+      await deleteMeet(id);
+      setReFetch(!reFetch);
+      toast.success("Meet Deleted Successfully");
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  const handleUpdate = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("title", title);
-      formData.append("time", date);
-      formData.append("classJoined", classJoined);
-      formData.append("organizedBy", organizedBy);
-      formData.append("location", location);
-      formData.append("description", description);
-      formData.append("meetId", meetId);
+    formData.append("time", date);
+    formData.append("classJoined", JSON.stringify(classJoined));
+    formData.append("organizedBy", organizedBy);
+    formData.append("location", location);
+    formData.append("description", description);
+    formData.append("meetId", meetId);
+    if (images.length > 0) {
+      images.forEach((img) => {
+        formData.append("images", img);
+      });
+    }
+    if (video) {
+      formData.append("video", video);
+    }
+    dispatch(setMeetLoading(true));
+    try {
+      await updateMeet(formData, meetId);
+      setTriggerReset(!triggerReset)
+      setReFetch(!reFetch);
+      toast.success("Meet Updated Successfully");
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      dispatch(setMeetLoading(false));
+    }
+  };
 
-     try{
-       const response = await updateMeet(formData , meetId)
-      console.log(response)
-      setReFetch(!reFetch)
-      toast.success("Meet Updated Successfully")
-     }catch(e){
-      toast.error(e.message)
-     }
-    
-  }
+  const handleMediaUpdate = async (e, toggle) => {
+    const formData = new FormData();
+    const input = e.target;
+
+    if (!toggle) {
+      const videoFile = e.target.files[0];
+      if (!videoFile) {
+        console.log("No video selected");
+        return;
+      }
+      formData.append("video", videoFile);
+    } else {
+      const imageFiles = Array.from(e.target.files);
+      if (imageFiles.length === 0) {
+        toast.error("No images selected");
+        return;
+      }
+      imageFiles.forEach((img) => formData.append("images", img));
+    }
+
+    formData.append("meetId", meetId);
+    dispatch(setMeetLoading(true));
+    try {
+       await updateMeetMedia(formData, meetId);
+      toast.success("Meet Updated Successfully");
+      setReFetch(!reFetch);
+    } catch (err) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      dispatch(setMeetLoading(false));
+
+      //  Reset file input so selecting the same file again will re-trigger onChange
+      input.value = "";
+    }
+  };
+
+  const handleMobileMediaChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const firstFile = files[0];
+
+    if (firstFile.type.startsWith("image/")) {
+      setMobileViewImages(files);
+      setIsImagesSelected(true);
+      setIsVideoSelected(false);
+    } else if (firstFile.type.startsWith("video/")) {
+      setMobileViewVideo(firstFile);
+      setIsVideoSelected(true);
+      setIsImagesSelected(false);
+    }
+  };
+
+  const handleMobileViewMediaSubmit = async () => {
+    const formData = new FormData();
+    if (mobileViewVideo) {
+      formData.append("video", mobileViewVideo);
+    }
+    if (mobileViewImages.length > 0) {
+      mobileViewImages.forEach((element) => {
+        formData.append("images", element);
+      });
+    }
+    formData.append("meetId", meetId);
+    dispatch(setMeetLoading(true));
+    try {
+      const response = await updateMeetMedia(formData, meetId);
+      console.log(response);
+      setReFetch((prev) => !prev);
+      toast.success("Meet Updated Successfully");
+      setReFetch(!reFetch);
+      setIsMediaUploadModelOpen(false);
+      setIsVideoSelected(false);
+      setIsImagesSelected(false);
+      setMobileViewImages([]);
+      setMobileViewVideo(null);
+    } catch (err) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      dispatch(setMeetLoading(false));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    setIsImagesSelected(true);
+    const files = Array.from(e.target.files);
+    setImages(files);
+    console.log(e.target.files);
+  };
+
+  const handleVideoChange = (e) => {
+    setIsVideoSelected(true);
+    setVideo(e.target.files[0]);
+    console.log(e.target.files[0]);
+  };
+
+  const mediaInputFields = [
+    {
+      label: "Images",
+      type: "file",
+      value: images,
+      change: handleImageChange,
+      accept: "image/*",
+      multiple: true,
+      required: false,
+    },
+    {
+      label: "Video",
+      type: "file",
+      value: video,
+      change: handleVideoChange,
+      accept: "video/*",
+      required: false,
+    },
+  ];
 
   return (
     <div className="flex relative flex-col h-full w-full p-6 gap-6">
       {showDeleteConfirm && (
-        <DeleteModel handler={{handleDelete:handleDeleteMeet}} values={{id: deletingMeetId}} setters={{setShowDeleteConfirm}}/>
+        <DeleteModel
+          handler={{ handleDelete: handleDeleteMeet }}
+          values={{ id: deletingMeetId }}
+          setters={{ setShowDeleteConfirm }}
+        />
       )}
       {meetLoading && (
         <div className="w-full bg-white/10 z-99 backdrop-blur-sm h-full absolute top-0 left-0 flex justify-center items-center">
@@ -101,6 +245,7 @@ function PlanMeet() {
         <Header
           value={{
             isEditing,
+            section: "planMeet",
             errorMessage,
             triggerReset,
             title1: "Schedule Meet",
@@ -110,7 +255,12 @@ function PlanMeet() {
             description2:
               "Modify the information below to update the scheduled alumni meet in the database.",
           }}
-          setters={{ setErrorMessage, setIsAdding, setTriggerReset }}
+          setters={{
+            setErrorMessage,
+            setIsAdding,
+            setTriggerReset,
+            setIsSeaching,
+          }}
         />
         <FormCard
           values={{
@@ -132,6 +282,10 @@ function PlanMeet() {
             isImagesSelected,
             isVideoSelected,
             previewURL,
+            isImagesUploaded,
+            isVideoUploaded,
+            mediaInputFields,
+            reFetch,
           }}
           setters={{
             setStep,
@@ -151,7 +305,8 @@ function PlanMeet() {
             setIsImagesSelected,
             setIsVideoSelected,
             setPreviewURL,
-            handleUpdate
+            handleUpdate,
+            setReFetch,
           }}
           setTriggerReset={setTriggerReset}
           triggerReset={triggerReset}
@@ -166,17 +321,28 @@ function PlanMeet() {
               section: "planMeet",
               clickedItem: clickedMeet,
               isAction,
+              Step,
               showDeleteConfirm,
+              mediaInputFields,
+              imageIds,
+              mobileViewImages,
+              mobileViewVideo,
+              isVideoSelected,
+              isImagesSelected,
+              isMediaUploadModelOpen,
+              meetId,
+              allMeets,
             }}
             setters={{
+              setSearch,
               setAlumniId,
               setTitle,
               setClassJoined,
               setOrganizedBy,
               setLocation,
               setDate,
-              setAlumni:setAlumniId,
-              setUpdatingMeetId:setMeetId,
+              setAlumni: setAlumniId,
+              setUpdatingMeetId: setMeetId,
               setDescription,
               setImages,
               setPreviewURL,
@@ -188,7 +354,19 @@ function PlanMeet() {
               setShowDeleteConfirm,
               setDeletingMeetId,
               setAlumniName,
-              setMeetId
+              setMeetId,
+              setIsVideoUploaded,
+              setIsImagesUploaded,
+              setStep,
+              setImageIds,
+              handleMediaUpdate,
+              handleMobileMediaChange,
+              setIsMediaUploadModelOpen,
+              setMobileViewImages,
+              setMobileViewVideo,
+              setIsVideoSelected,
+              setIsImagesSelected,
+              handleMobileViewMediaSubmit,
             }}
           />
         )}

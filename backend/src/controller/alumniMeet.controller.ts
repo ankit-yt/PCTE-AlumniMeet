@@ -4,10 +4,12 @@ import {
   createNewAlumniMeetService,
   deleteAlumniMeetService,
   deleteAlumniService,
+  deleteMeetMediaService,
   getAllAlumniListService,
   getAllAlumniMeetsService,
   updateAlumniMeetService,
   updateAlumniService,
+  updateMeetMediaService,
 } from "../services/alumniMeet.service";
 import { alumniMeetDocument } from "../types/model.interface";
 import {
@@ -32,10 +34,17 @@ export const getAllAlumni = async (
   }
 };
 
-export const addNewAlumni = async (req: Request, res: Response, next: NextFunction) => {
+export const addNewAlumni = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const data = req.body;
-    const file = req.file as Express.Multer.File & { path: string; filename: string };
+    const file = req.file as Express.Multer.File & {
+      path: string;
+      filename: string;
+    };
 
     const parsedCareerTimeline = JSON.parse(data.careerTimeline);
     const parsedAchievements = JSON.parse(data.achievement);
@@ -60,10 +69,14 @@ export const addNewAlumni = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-
-export const updateAlumni = async (req: Request, res: Response, next: NextFunction) => {
+export const updateAlumni = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = req.params.id;
+    console.log(JSON.stringify(id))
 
     const imageFile = req.file as Express.Multer.File & {
       path: string;
@@ -71,8 +84,8 @@ export const updateAlumni = async (req: Request, res: Response, next: NextFuncti
     };
 
     // const profilePicUrl = await removeBackground(
-  //   (req as customRequest).fileName as string
-  // );
+    //   (req as customRequest).fileName as string
+    // );
 
     const data: AlumniInput = {
       ...req.body,
@@ -118,9 +131,9 @@ export const addNewAlumniMeet = async (
 ) => {
   try {
     const data = req.body;
-    const parsedClassJoined = JSON.parse(data.classJoined)
-    console.log(parsedClassJoined)
-    const parsedTime  = new Date(data.date)
+    const parsedClassJoined = JSON.parse(data.classJoined);
+    console.log(parsedClassJoined);
+    const parsedTime = new Date(data.date);
 
     const Files = req.files as {
       images?: (Express.Multer.File & { path: string; filename: string })[];
@@ -130,26 +143,25 @@ export const addNewAlumniMeet = async (
     // const imagesIds: string[] = Files?.images?.map((file) => file.filename) || [];
 
     const images =
-  Files?.images?.map((file) => ({
-    image: file.path,      
-    imageId: file.filename, 
-  })) || [];
-
+      Files?.images?.map((file) => ({
+        image: file.path,
+        imageId: file.filename,
+      })) || [];
 
     const video: string = Files?.video?.[0]?.path || "";
     const videoId: string = Files?.video?.[0]?.filename || "";
 
     const newData: AlumniMeetInput = {
       ...data,
-      classJoined:parsedClassJoined,
-      time:parsedTime,
+      classJoined: parsedClassJoined,
+      time: parsedTime,
       media: {
         images,
         videoLink: video,
         videoId: videoId,
       },
     };
-    console.log(newData)
+    console.log(newData);
 
     const newAlumniMeet = await createNewAlumniMeetService(newData);
 
@@ -164,7 +176,6 @@ export const addNewAlumniMeet = async (
   }
 };
 
-
 export const getAllAlumniMeets = async (
   req: Request,
   res: Response,
@@ -172,7 +183,7 @@ export const getAllAlumniMeets = async (
 ) => {
   try {
     const alumniMeets: alumniMeetDocument[] = await getAllAlumniMeetsService();
-  
+
     res
       .status(200)
       .json({ success: true, message: "All Alumni Meets", data: alumniMeets });
@@ -188,31 +199,37 @@ export const updateAlumniMeet = async (
 ) => {
   try {
     const data = req.body;
+    console.log(data.images);
+    const parsedClassJoined = JSON.parse(data.classJoined);
+    console.log("printing data");
+    console.dir(data);
     const id = req.params.id;
-    const videoFile = req.file as Express.Multer.File & {
-      path: string;
-      filename: string;
+    const Files = req.files as {
+      images?: (Express.Multer.File & { path: string; filename: string })[];
+      video?: (Express.Multer.File & { path: string; filename: string })[];
     };
-    const imagesFiles = req.files as {
-      images: (Express.Multer.File & { path: string; filename: string })[];
-    };
-    const videoUrl: string = videoFile?.path;
-    const videoId: string = videoFile?.filename;
-    console.log("1")
-    const imagesUrl: string[] =
-      imagesFiles?.images?.map((file) => file.path) || [];
-      console.log("1")
-    const imagesIds: string[] =
-      imagesFiles?.images?.map((file) => file.filename) || [];
+    const images =
+      Files?.images?.map((file) => ({
+        image: file.path,
+        imageId: file.filename,
+      })) || [];
+
+    console.log(images);
+
+    const video: string = Files?.video?.[0]?.path || "";
+    const videoId: string = Files?.video?.[0]?.filename || "";
 
     const newData: AlumniMeetInput = {
       ...data,
+      classJoined: parsedClassJoined,
       media: {
         ...(data.media || {}),
-        ...(videoUrl && { videoLink: videoUrl, videoId }),
-        ...(imagesUrl.length > 0 && { images: imagesUrl, imagesIds }),
+        ...(video && { videoLink: video, videoId }),
+        ...(images.length > 0 && { images }),
       },
     };
+
+    console.dir(data);
 
     const deleteImagesUrls: string[] = req.body.deleteImages || [];
     const deleteImagesIds: string[] = req.body.deleteImagesIds || [];
@@ -229,7 +246,67 @@ export const updateAlumniMeet = async (
       message: "Alumni Meet updated successfully",
       data: updatedAlumniMeet,
     });
-  } catch (err:any) {
+  } catch (err: any) {
+    console.log(err.message);
+    next(err);
+  }
+};
+
+export const updateMeetMedia = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.id;
+    console.log("chala");
+    const Files = req.files as {
+      images?: (Express.Multer.File & { path: string; filename: string })[];
+      video?: (Express.Multer.File & { path: string; filename: string })[];
+    };
+    const images =
+      Files?.images?.map((file) => ({
+        image: file.path,
+        imageId: file.filename,
+      })) || [];
+
+    const video: string = Files?.video?.[0]?.path || "";
+    const videoId: string = Files?.video?.[0]?.filename || "";
+    const updatedMeet = await updateMeetMediaService(
+      images,
+      video,
+      videoId,
+      id
+    );
+    res.status(200).json({
+      success: true,
+      message: "Alumni Meet updated successfully",
+      data: updatedMeet,
+    });
+  } catch (err: any) {
+    console.log(err.message);
+    next(err);
+  }
+};
+
+export const deleteMeetMedia = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const id = req.params.id;
+  try {
+    const imageIds: string[] = JSON.parse(req.body.imageIds);
+    if (imageIds.length > 0) {
+      await deleteFromCloudinary(imageIds as string[]);
+    }
+    const updatedMeet = await deleteMeetMediaService(imageIds, id);
+    res.status(200).json({
+      success: true,
+      message: "Alumni Meet updated successfully",
+      data: updatedMeet,
+    });
+  } catch (err: any) {
     console.log(err.message);
     next(err);
   }
@@ -244,20 +321,22 @@ export const deleteAlumniMeet = async (
     const id = req.params.id;
     const deletedAlumniMeet = await deleteAlumniMeetService(id);
 
-    const imagesIds = deletedAlumniMeet?.media?.images.map((image)=>image.imageId);
+    const imagesIds = deletedAlumniMeet?.media?.images.map(
+      (image) => image.imageId
+    );
     const videoId = deletedAlumniMeet?.media?.videoId;
     if (imagesIds) {
       await deleteFromCloudinary(imagesIds as string[]);
     }
-    if(videoId){
+    if (videoId) {
       await deleteFromCloudinary([videoId as string]);
     }
     res.status(200).json({
       success: true,
       message: "Alumni Meet deleted successfully",
     });
-  } catch (err:any) {
-    console.log(err.message)
+  } catch (err: any) {
+    console.log(err.message);
     next(err);
   }
 };

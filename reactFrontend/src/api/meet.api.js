@@ -15,3 +15,8 @@ export const deleteMeet = async(id)=>{
 export const updateMeet = async(formData, meetId)=>{
     return await axiosInstance.put(`/meet/${meetId}` , formData)
 }
+
+export const updateMeetMedia = async(formData , meetId)=>{
+    console.log("ye n chaalla")
+    return await axiosInstance.put(`/meet/${meetId}/mediaUpload`, formData)
+}

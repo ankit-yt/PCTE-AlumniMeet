@@ -10,6 +10,7 @@ import {
   getAllAlumniMeetsDao,
   updateAlumniDao,
   updateAlumniMeetDao,
+  updateMeetMediaDao,
 } from "../dao/alumniMeet.dao";
 import alumniModel from "../model/alumni.model";
 import { AlumniInput, AlumniMeetInput } from "../types/interface";
@@ -22,6 +23,7 @@ import {
 } from "../utility/customErrors";
 import { deleteFromCloudinary } from "../utility/cloudnaryDeletion";
 import mongoose from "mongoose";
+import { deleteMeetMedia } from "../controller/alumniMeet.controller";
 
 export const getAllAlumniListService = async (): Promise<Alumni[]> => {
   const alumniList = await getAllAlumniDao();
@@ -88,7 +90,6 @@ export const createNewAlumniMeetService = async (
   data: AlumniMeetInput
 ): Promise<alumniMeetDocument> => {
   try {
-    
     if (
       !data.title ||
       typeof data.title !== "string" ||
@@ -117,16 +118,16 @@ export const createNewAlumniMeetService = async (
       throw new ValidationError("Please select a valid Alumni");
     }
 
-    
     if (
-      data.classJoined && data.classJoined.some(
-        (cls:string) => !cls || typeof cls !== "string" || cls.trim().length < 2
+      data.classJoined &&
+      data.classJoined.some(
+        (cls: string) =>
+          !cls || typeof cls !== "string" || cls.trim().length < 2
       )
     ) {
       throw new ValidationError("Invalid class values provided");
     }
 
-    
     if (data.media.images.length > 5) {
       throw new ValidationError("You can upload a maximum of 5 images");
     }
@@ -226,9 +227,6 @@ export const updateAlumniService = async (
       );
   }
 
-  const isAlumniExist = await checkAlumniByIdDao(id);
-  if (!isAlumniExist)
-    throw new NotFoundError("Cannot update alumni. Alumni not exist");
 
   const oldAlumni = await findAlumniByIdDao(id);
   if (!oldAlumni)
@@ -262,6 +260,50 @@ export const updateAlumniMeetService = async (
   data: AlumniMeetInput,
   deleteImages: string[]
 ): Promise<alumniMeetDocument> => {
+  if (
+    !data.title ||
+    typeof data.title !== "string" ||
+    data.title.trim().length < 3
+  ) {
+    throw new ValidationError("Title must be at least 3 characters long");
+  }
+
+  if (!data.organizedBy || data.organizedBy.trim().length < 2) {
+    throw new ValidationError("Organized By is required");
+  }
+
+  if (!data.location || data.location.trim().length < 2) {
+    throw new ValidationError("Location is required");
+  }
+
+  if (data.description && data.description.length > 1000) {
+    throw new ValidationError("Description cannot exceed 1000 characters");
+  }
+
+  if (!data.time || isNaN(new Date(data.time).getTime())) {
+    throw new ValidationError("A valid date is required");
+  }
+
+  if (
+    data.classJoined &&
+    data.classJoined?.some(
+      (cls: string) => !cls || typeof cls !== "string" || cls.trim().length < 2
+    )
+  ) {
+    throw new ValidationError("Invalid class values provided");
+  }
+
+  if (data.media.images.length > 5) {
+    throw new ValidationError("You can upload a maximum of 5 images");
+  }
+  if (data.media.videoLink && typeof data.media.videoLink !== "string") {
+    throw new ValidationError("Invalid video link provided");
+  }
+
+  data.title = data.title.trim();
+  data.organizedBy = data.organizedBy.trim();
+  data.location = data.location.trim();
+  data.description = data.description?.trim();
   const isAlumniMeetExist = await checkAlumniMeetsDao(id);
   if (!isAlumniMeetExist) {
     throw new Error("Cannot update alumni meet. Alumni meet not exist");
@@ -271,11 +313,50 @@ export const updateAlumniMeetService = async (
   return updatedAlumniMeet;
 };
 
+export const updateMeetMediaService = async (
+  images: [],
+  video: string,
+  videoId: string,
+  id: string
+) => {
+  try {
+    const updatedMeet = await updateMeetMediaDao(images, video, videoId, id);
+
+    return updatedMeet;
+  } catch (err) {
+    await Promise.all(
+      images.map(async (image) => {
+        await deleteFromCloudinary((image as any).imageId);
+      })
+    );
+    if (videoId) {
+      await deleteFromCloudinary(videoId);
+    }
+    throw err;
+  }
+};
+
+export const deleteMeetMediaService = async (
+  imageIds: string[],
+  id: string
+) => {
+  try {
+    if (imageIds.length === 0) return;
+    const isExist = await checkAlumniMeetsDao(id);
+    if (!isExist) throw new Error("Cannot delete media. Meet not exist");
+    const updatedMeet = await deleteMeetMediaDao(imageIds, id);
+    if (!updatedMeet) throw new Error("Deletion failed !.");
+    return updatedMeet;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
 export const deleteAlumniMeetService = async (
   id: string
 ): Promise<alumniMeetDocument> => {
   const isAlumniMeetExist = await checkAlumniMeetsDao(id);
-  console.log(isAlumniMeetExist)
+  console.log(isAlumniMeetExist);
   if (!isAlumniMeetExist) {
     throw new Error("Cannot delete alumni meet. Alumni meet not exist");
   }

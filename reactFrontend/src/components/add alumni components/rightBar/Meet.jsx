@@ -71,7 +71,7 @@ function Meet({values, setters}) {
           </div>
 
           <div className="mt-6 flex no-scrollbar flex-col gap-6 flex-1 overflow-y-auto pr-1 ">
-            {/* Details Grid */}
+           
             <div className="grid grid-cols-1 gap-4">
               <InfoItem
                 icon={<FaLocationDot />}

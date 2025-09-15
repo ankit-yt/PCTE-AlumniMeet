@@ -12,10 +12,14 @@ import { FiSearch } from "react-icons/fi";
 import { RiResetLeftFill } from "react-icons/ri";
 import Header from "./common/Header";
 import { useOutletContext } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import DeleteModel from "./common/DeleteModel";
+import loading from "../../public/loader.json";
+import Lottie from "lottie-react";
+import { setAlumniLoading } from "../redux/slices/loadingSlice";
 
 function AddAlumni() {
+  const dispatch = useDispatch()
   
    const { reFetch, setReFetch } = useOutletContext();
    const allAlumni = useSelector(state => state.alumni);
@@ -46,6 +50,8 @@ function AddAlumni() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingAlumniId, setDeletingAlumniId] = useState("");
+
+  const { alumniLoading } = useSelector((state) => state.loading);
 
 
 const inputFields = [
@@ -125,12 +131,12 @@ const inputFields = [
 
     console.log("checking picture");
     console.log(formData.profilePic);
-
+    dispatch(setAlumniLoading(true))
     try {
       const response = await addNewAlumni(formData);
       console.log(response);
       toast.success("🎉 Alumni added successfully!");
-
+      
       setname("");
       setProfilePic(null);
       setBatch("");
@@ -161,6 +167,8 @@ const inputFields = [
       } else {
         toast.error(`❌ ${error.message}`);
       }
+    }finally{
+      dispatch(setAlumniLoading(false))
     }
   };
 
@@ -183,7 +191,7 @@ const inputFields = [
 
     console.log("checking picture");
     console.log(formData.profilePic);
-
+    dispatch(setAlumniLoading(true))
     try {
       const response = await updateAlumni(formData, updatingAlumniId);
       console.log(response);
@@ -221,10 +229,15 @@ const inputFields = [
       } else {
         toast.error(`❌ ${error.message}`);
       }
+    }finally{
+      
+    dispatch(setAlumniLoading(false))
     }
   };
 
   const handleDeleteAlumni = async (alumniId) => {
+    
+    dispatch(setAlumniLoading(true))
     try {
       const response = await deleteAlumni(alumniId);
       console.log(response);
@@ -235,6 +248,9 @@ const inputFields = [
       console.log(error);
       toast.error("❌ Failed to delete alumni. Try again.");
       console.log(error.message);
+    }finally{
+      
+    dispatch(setAlumniLoading(false))
     }
   };
 
@@ -281,6 +297,17 @@ const inputFields = [
         <DeleteModel handler={{handleDelete:handleDeleteAlumni}} values={{id:deletingAlumniId}} setters={{setShowDeleteConfirm}}/>
       )}
 
+      {alumniLoading && (
+              <div className="w-full bg-white/10 z-99 backdrop-blur-sm h-full absolute top-0 left-0 flex justify-center items-center">
+                <Lottie
+                  animationData={loading}
+                  loop={true}
+                  autoplay={true}
+                  className="w-20 "
+                />
+              </div>
+            )}
+
       {!isAddingAlumni && (
         <SearchAlumni
           handleDelete={handleDeleteAlumni}
@@ -323,7 +350,7 @@ const inputFields = [
       )}
 
       <div className="md:px-10 h-full no-scrollbar overflow-auto  ">
-      <Header value={{isEditing , errorMessage , title1:"Add New Alumni" , description1:"Provide the alumni's details below to add them to the system.", title2:"Edit Alumni Information" , description2:"Update the details below to edit this alumni’s record in the database." }} setters={{setErrorMessage , setIsAdding:setIsAddingAlumni}} handleReset={handleReset} />
+      <Header value={{isEditing , errorMessage ,section:'addAlumni', title1:"Add New Alumni" , description1:"Provide the alumni's details below to add them to the system.", title2:"Edit Alumni Information" , description2:"Update the details below to edit this alumni’s record in the database." }} setters={{setErrorMessage , setIsAdding:setIsAddingAlumni}} handleReset={handleReset} />
 
         <div className="w-full mt-4 gap-4 md:h-5/6 h-auto flex flex-col md:flex-row">
           {width >= 1024 && width >= 768 ? (

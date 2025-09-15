@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { IoClose } from "react-icons/io5";
 
 function Card1({ handleImageChange, values, setters }) {
-  const { title, inputType, isSeaching, query,  previewURL , alumniName } = values;
+  const { title, inputType, isSeaching, query,  previewURL , alumniName , isEditing } = values;
   const { setIsSeaching, setQuery, setAlumniId, setPreviewURL , setAlumniName , setTitle} = setters;
   const allAlumni = useSelector((state) => state.alumni);
   console.log(allAlumni);
@@ -27,7 +27,7 @@ function Card1({ handleImageChange, values, setters }) {
   }
 
   return (
-    <div className="w-full md:w-2/5 h-auto md:h-full overflow-auto no-scrollbar flex flex-col items-center gap-6 p-6 md:p-8 rounded-3xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 ease-in-out border border-red-100">
+    <div className="w-full md:w-2/5 h-96 md:h-full overflow-hidden no-scrollbar flex flex-col items-center gap-6 p-6 md:p-8 rounded-3xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 ease-in-out border border-red-100">
       {/* Label */}
       <div className="w-full">
         <label
@@ -40,8 +40,10 @@ function Card1({ handleImageChange, values, setters }) {
           <div className="relative w-full">
             <input
               onFocus={() => {
+               if(!isEditing){
                 setQuery("");
                 setIsSeaching(true);
+               }
               }}
               value={inputType === "file" ? "" : query}
               type={inputType}
@@ -52,7 +54,7 @@ function Card1({ handleImageChange, values, setters }) {
               onChange={
                 inputType === "file"
                   ? handleImageChange
-                  : (e) => setQuery(e.target.value)
+                  : isEditing ? setQuery(alumniName) : (e) => setQuery(e.target.value)
               }
               className="w-full px-3 md:px-4 py-2 pr-10 border-2 border-red-300 rounded-lg bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-red-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100"
             />
@@ -73,11 +75,11 @@ function Card1({ handleImageChange, values, setters }) {
           </div>
         </div>
       </div>
-      <div className="w-full h-5/6 relative flex flex-col items-center no-scrollbar justify-center gap-10 ">
+      <div className="w-full h-5/6 relative flex  flex-col items-center no-scrollbar justify-center gap-10 ">
         <div
           className={`w-full absolute ${
             isSeaching ? "top-0 z-80 opacity-100" : "top-110 opacity-0 "
-          } transition-all duration-500 left-0 max-h-96 overflow-y-auto bg-white  rounded-md`}
+          } transition-all duration-500 left-0 md:max-h-96 h-full  overflow-y-auto bg-white  rounded-md`}
         >
           {(filteredQuery || allAlumni).map((alumni) => (
             <div
@@ -114,7 +116,7 @@ function Card1({ handleImageChange, values, setters }) {
 
         <div
           className={`w-full h-full flex flex-col absolute ${
-            isSeaching ? "translate-y-110" : "translate-y-10"
+            isSeaching ? "translate-y-110" : "md:translate-y-10"
           } transition-all duration-500  gap-5  items-center`}
         >
          {title === 'Choose Alumni' && previewURL && <h1 className="text-2xl md:text-3xl font-bold text-gray-800 relative">
