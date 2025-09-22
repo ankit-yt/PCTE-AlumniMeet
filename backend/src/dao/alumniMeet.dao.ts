@@ -2,9 +2,11 @@ import mongoose from "mongoose";
 import alumniModel from "../model/alumni.model";
 import alumniMeetModel from "../model/alumniMeet.model";
 import { AlumniInput, AlumniMeetInput } from "../types/interface";
-import { Alumni, alumniMeetDocument } from "../types/model.interface";
+import { Alumni, alumniMeetDocument, feedback } from "../types/model.interface";
 import { ValidationError } from "../utility/customErrors";
 import { deleteFromCloudinary } from "../utility/cloudnaryDeletion";
+import feebackModel from "../model/feedback.model";
+import feedbackModel from "../model/feedback.model";
 
 // good
 export const getAllAlumniDao = async (): Promise<Alumni[]> => {
@@ -82,7 +84,7 @@ export const checkAlumniByIdDao = async (id: string): Promise<boolean> => {
 // Production ready done
 export const checkAlumniMeetsDao = async (id: string): Promise<boolean> => {
   try {
-    const alumniMeets = await alumniMeetModel.exists({ _id: id });
+    const alumniMeets = await alumniMeetModel.exists({ alumni: id });
     return Boolean(alumniMeets);
   } catch (err: any) {
     console.error("DAO Error [checkAlumniMeets]:", err);
@@ -287,3 +289,28 @@ export const deleteAlumniMeetDao = async (id: string): Promise<alumniMeetDocumen
     );
   }
 };
+
+export const addFeedbackDao = async(name:string , company:string , comment:string):Promise<feedback>=>{
+ try {
+    const feedbackDoc = new feedbackModel({ name, company, comment });
+    await feedbackDoc.save();
+    return feedbackDoc;
+  } catch (err: any) {
+    throw new Error(
+      "Database error while adding new Feedback: " + err.message
+    );
+  }
+};
+
+export const getTalksPaginationDao = async(page:number , limit:number, now:Date)=>{
+  try{
+    const skip = (page - 1) * limit;
+  const talks:alumniMeetDocument[] = await alumniMeetModel.find({time:{$lte:now}}).sort({createdAt:-1}).skip(skip).limit(limit).lean().populate({path:"alumni"});
+  const total = await alumniMeetModel.countDocuments({time:{$lte:now}});
+  return {talks, total}
+  }catch(err:any){
+    throw new Error(
+      "Database error while fetching talks on frontend: " + err.message
+    );
+  }
+}

@@ -19,3 +19,7 @@ export const updateAlumni = async(data, alumniId) =>{
 export const deleteAlumni = async(alumniId) =>{
     return await axiosInstance.delete(`deleteAlumni/${alumniId}`);
 }
+
+export const getSomeRandomAlumni = async()=>{
+    return await axiosInstance.get("/getSomeRandomAlumni");
+}

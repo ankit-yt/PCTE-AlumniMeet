@@ -1,12 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import {
   addNewAlumniService,
+  addNewFeedbackService,
   createNewAlumniMeetService,
   deleteAlumniMeetService,
   deleteAlumniService,
   deleteMeetMediaService,
   getAllAlumniListService,
   getAllAlumniMeetsService,
+  getTalksPaginationService,
   updateAlumniMeetService,
   updateAlumniService,
   updateMeetMediaService,
@@ -20,6 +22,9 @@ import {
 import { removeBackground } from "../utility/aiBgRemover";
 import { deleteFromCloudinary } from "../utility/cloudnaryDeletion";
 import { getAlumniById } from "../dao/alumniMeet.dao";
+import alumniMeetModel from "../model/alumniMeet.model";
+import alumniModel from "../model/alumni.model";
+import feebackModel from "../model/feedback.model";
 
 export const getAllAlumni = async (
   req: Request,
@@ -49,12 +54,24 @@ export const addNewAlumni = async (
     const parsedCareerTimeline = JSON.parse(data.careerTimeline);
     const parsedAchievements = JSON.parse(data.achievement);
 
+    let profilePicUrl: string | undefined;
+    let fileName: string | undefined;
+
+    if (file) {
+      // // ✅ remove bg and upload to cloudinary
+      // profilePicUrl = await removeBackground(file.filename);
+      profilePicUrl = file.path;
+      fileName = file.filename;
+    }
+
     const alumniInput: AlumniInput = {
       ...data,
       careerTimeline: parsedCareerTimeline,
       achievements: parsedAchievements,
-      profilePic: file?.path,
-      fileName: file?.filename,
+      ...(profilePicUrl && {
+        profilePic: profilePicUrl,
+        fileName,
+      }),
     };
 
     const newAlumni = await addNewAlumniService(alumniInput);
@@ -69,6 +86,7 @@ export const addNewAlumni = async (
   }
 };
 
+
 export const updateAlumni = async (
   req: Request,
   res: Response,
@@ -76,23 +94,28 @@ export const updateAlumni = async (
 ) => {
   try {
     const id = req.params.id;
-    console.log(JSON.stringify(id))
 
     const imageFile = req.file as Express.Multer.File & {
       path: string;
       filename: string;
     };
 
-    // const profilePicUrl = await removeBackground(
-    //   (req as customRequest).fileName as string
-    // );
+    let profilePicUrl: string | undefined;
+    let fileName: string | undefined;
+
+    if (imageFile) {
+      // ✅ remove bg and upload to cloudinary
+      // profilePicUrl = await removeBackground(imageFile.filename);
+       profilePicUrl = imageFile.path;
+      fileName = imageFile.filename;
+    }
 
     const data: AlumniInput = {
       ...req.body,
       achievements: req.body.achievement,
-      ...(imageFile?.path && {
-        profilePic: imageFile.path,
-        fileName: imageFile.filename,
+      ...(profilePicUrl && {
+        profilePic: profilePicUrl,
+        fileName,
       }),
     };
 
@@ -102,6 +125,7 @@ export const updateAlumni = async (
     next(error);
   }
 };
+
 
 export const deleteAlumni = async (
   req: Request,
@@ -119,7 +143,8 @@ export const deleteAlumni = async (
       message: "Alumni deleted successfully.",
       data: deletedAlumni,
     });
-  } catch (err) {
+  } catch (err:any) {
+    console.log(err.message)
     next(err);
   }
 };
@@ -340,3 +365,96 @@ export const deleteAlumniMeet = async (
     next(err);
   }
 };
+
+
+export const getMeetsOnFrontend = async(req:Request , res:Response , next:NextFunction)=>{
+  try{
+    const params = req.params.type
+    const now = new Date()
+    let meets;
+  if(params === 'randomUpcomings'){
+     meets = await alumniMeetModel.aggregate([
+    {$match:{time:{$gt:now}}},
+    {$sample:{size:1}}
+  ])
+  }
+  if(params === 'allUpcomings'){
+     meets = await alumniMeetModel.aggregate([
+    {$match:{time:{$gt:now}}},
+    ])
+  }
+  if(params === 'randomPast'){
+    meets = await alumniMeetModel.aggregate([
+      {$match:{time:{$lt:now}}},
+      {$sample:{size:3}}
+    ])
+  }
+  if(params === 'allPast'){
+    meets = await alumniMeetModel.aggregate([{$match:{time:{$lt:now}}}])
+  }
+  const populatedDoc = await alumniMeetModel.populate(meets, {
+    path: "alumni",
+  })
+  res.status(200).json(populatedDoc)
+  }catch(err:any){
+    console.log(err.message)
+    next(err)
+  }
+}
+
+
+
+export const getSomeRandomAlumni = async(req:Request , res:Response , next:NextFunction)=>{
+  try{
+    const alumnis = await alumniModel.aggregate([
+    {$sample:{size:4}}
+  ])
+  res.status(200).json(alumnis)
+  }catch(err:any){
+    console.log(err.message)
+    next(err)
+  }
+}
+
+export const addNewFeedback = async(req:Request , res:Response, next:NextFunction)=>{
+  console.log(req.body)
+  const {comment , name , company} = req.body
+  try{
+      const newFeedback = await addNewFeedbackService(name, company , comment)
+  if(newFeedback){
+    res.status(200).json({status:"succes", feeback:newFeedback})
+  }
+  }catch(err:any){
+    console.log(err.message)
+    next(err)
+  }
+}
+
+export const fetchRandomFeedbacks = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const feedbacks = await feebackModel.aggregate([
+      { $sample: { size: 3 } }   
+    ]);
+    res.status(200).json({
+      status: "success",
+      feedbacks
+    });
+  } catch (err: any) {
+    console.error("Error fetching feedbacks:", err.message);
+    next(err);
+  }
+};
+
+export const getTalksPagination = async(req:Request , res:Response , next:NextFunction)=>{
+  try{
+    console.log("chala")
+     const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 3;
+  const data = await getTalksPaginationService(page, limit)
+  console.log(data)
+  return res.status(200).json({status:"success", ...data})
+  }catch(err:any){
+    console.log("Error fetching talks : " , err)
+    next(err)
+  }
+}

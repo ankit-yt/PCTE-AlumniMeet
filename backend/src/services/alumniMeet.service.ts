@@ -1,4 +1,5 @@
 import {
+  addFeedbackDao,
   addNewAlumniDao,
   checkAlumniByIdDao,
   checkAlumniMeetsDao,
@@ -8,13 +9,15 @@ import {
   findAlumniByIdDao,
   getAllAlumniDao,
   getAllAlumniMeetsDao,
+  getTalksOnFrontendDao,
+  getTalksPaginationDao,
   updateAlumniDao,
   updateAlumniMeetDao,
   updateMeetMediaDao,
 } from "../dao/alumniMeet.dao";
 import alumniModel from "../model/alumni.model";
 import { AlumniInput, AlumniMeetInput } from "../types/interface";
-import { Alumni, alumniMeetDocument } from "../types/model.interface";
+import { Alumni, alumniMeetDocument, feedback } from "../types/model.interface";
 import {
   BadRequestError,
   ConflictError,
@@ -157,6 +160,7 @@ export const createNewAlumniMeetService = async (
 
 export const deleteAlumniService = async (id: string): Promise<Alumni> => {
   const isAlumniExist = await checkAlumniByIdDao(id);
+  
   if (!isAlumniExist) {
     throw new NotFoundError("Can't delete alumni. Alumni not exist");
   }
@@ -196,7 +200,7 @@ export const updateAlumniService = async (
   if (!mongoose.Types.ObjectId.isValid(id))
     throw new NotFoundError("Invalid alumni ID");
 
-  //  Parse JSON safely
+  //  Parse JSON 
   let parsedCareerTimeline, parsedAchievements;
   try {
     parsedCareerTimeline = JSON.parse(data.careerTimeline as unknown as string);
@@ -365,3 +369,58 @@ export const deleteAlumniMeetService = async (
     throw new Error("Deletion failed. Alumni may have already been deleted.");
   return deletedAlumniMeet;
 };
+
+
+export const addNewFeedbackService = async (
+  name: string,
+  company: string,
+  comment: string
+): Promise<feedback> => {
+  try {
+    if (!name || name.trim().length === 0) {
+      throw new Error("Name is required");
+    }
+
+    if (!company || company.trim().length === 0) {
+      throw new Error("Company is required");
+    }
+
+    if (!comment || comment.trim().length === 0) {
+      throw new Error("Comment is required");
+    }
+
+    if (comment.length < 10) {
+      throw new Error("Comment must be at least 10 characters long");
+    }
+    if (comment.length > 500) {
+      throw new Error("Comment cannot exceed 500 characters");
+    }
+
+    const newFeedback = await addFeedbackDao(name, company, comment);
+    return newFeedback;
+  } catch (err: any) {
+    throw new Error(
+      err.message || "Error in services while adding new feedback"
+    );
+  }
+};
+
+export const  getTalksPaginationService = async(page:number = 1 , limit:number = 3) => {
+  try {
+    const now = new Date();
+    const {talks , total} = await  getTalksPaginationDao(page, limit , now);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      talks,
+      total,
+      page,
+      totalPages,
+      hasMore:page<totalPages
+    };
+  } catch (err: any) {
+    throw new Error(
+      err.message || "Error in services while getting talks"
+    );
+  }
+}

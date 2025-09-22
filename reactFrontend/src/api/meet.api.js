@@ -20,3 +20,11 @@ export const updateMeetMedia = async(formData , meetId)=>{
     console.log("ye n chaalla")
     return await axiosInstance.put(`/meet/${meetId}/mediaUpload`, formData)
 }
+
+export const fetchTalksOnFrontend = async(type)=>{
+    return await axiosInstance.get(`/fetchTalksOnFrontend/${type}`)
+}
+
+export const talkPagination = async(page , limit)=>{
+    return await axiosInstance.get(`/talkPagination?page=${page}&limit=${limit}`)
+}

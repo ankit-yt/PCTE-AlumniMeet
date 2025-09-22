@@ -214,7 +214,7 @@ function AlumniListDesk({ props }) {
                     <td className="px-4 py-3 font-medium">{index + 1}</td>
                     <td className="px-4 py-3  ">
                       <img
-                        src={meet.alumni[0].profilePic}
+                        src={meet.alumni[0]?.profilePic || ''}
                         alt="Profile"
                         className="w-12 h-12 mx-auto object-top rounded-full border-2 border-red-300 object-cover shadow-sm"
                       />

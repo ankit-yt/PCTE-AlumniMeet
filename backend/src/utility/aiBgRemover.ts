@@ -21,11 +21,12 @@ export const removeBackground = async (localFile: string) => {
     {
       headers: {
         ...formData.getHeaders(),
-        "X-Api-key": "y6haaPuQwjoDVdpBEEjPn6US",
+        "X-Api-key": "SBBe4JwYeRTm62T4qYo2bZB7",
       },
       responseType: "arraybuffer",
     }
   );
+  
   const bgRemovedBuffer = Buffer.from(response.data, "binary");
 
   const uploadResult = await new Promise<{ secure_url: string }>(

@@ -37,3 +37,10 @@ export interface alumniMeetDocument extends Document {
 
 }
 
+export interface feedback extends Document{
+  avatar:string
+  name:string,
+  comment:string,
+  company:string,
+  createdAt:Date
+}
