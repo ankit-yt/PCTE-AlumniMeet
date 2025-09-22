@@ -8,6 +8,7 @@ import PlanMeet from './components/PlanMeet';
 import StudentPanel from './pages/studentPanel';
 import Home from './studentPanel component/Home';
 import Talks from './studentPanel component/Talks';
+import TalkInsight from './studentPanel component/TalkInsight';
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/" element={<StudentPanel/>} >
           <Route index element={<Home />} />
           <Route path='talks' element={<Talks />} />
+          <Route path='talkInsight' element={<TalkInsight />} />
         </Route>
         <Route path="*" element={<h1>Not Found</h1>} />
       </Routes>

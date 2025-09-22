@@ -1,42 +1,57 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { FaPlay } from "react-icons/fa";
 import { talkPagination } from "../api/meet.api";
 import { FaVideoSlash } from "react-icons/fa";
+import {  useNavigate } from "react-router-dom";
+import { useInfiniteQuery,  } from "@tanstack/react-query";
 
 function Talks() {
-  const [talks, setTalks] = useState([]);
-  const [page, setPage] = useState(1);
-  const [isMore, setIsMore] = useState(true);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [index, setIndex] = useState(-1);
   const videoRef = useRef(null);
 
-  useEffect(() => {
-    const fetchTalks = async (page, limit) => {
-      try {
-        const data = await talkPagination(page, limit);
-        console.log(data.data);
-        if (data.data.status === "success") {
-          setTalks((prev) => [...prev, ...data.data.talks]);
-          if (!data.data.hasMore) {
-            setIsMore(false);
-          }
-        }
-      } catch (err) {
-        console.log(err.message);
-      }
-    };
-    fetchTalks(page, 3);
-  }, [page]);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log("Updated talks:", talks);
-  }, [talks]);
+  // useEffect(() => {
+  //   const fetchTalks = async (page, limit) => {
+  //     try {
+  //       const data = await talkPagination(page, limit);
+  //       console.log(data.data);
+  //       if (data.data.status === "success") {
+  //         setTalks((prev) => [...prev, ...data.data.talks]);
+  //         if (!data.data.hasMore) {
+  //           setIsMore(false);
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.log(err.message);
+  //     }
+  //   };
+  //   fetchTalks(page, 3);
+  // }, [page]);
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["talks"],
+      queryFn: ({ pageParam = 1 }) => talkPagination(pageParam, 3),
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.data.hasMore ? allPages.length + 1 : undefined;
+      },
+      staleTime: 1000 * 60 * 5,
+    });
+
+  const talksArray = data?.pages.flatMap((p) => p.data.talks) || [];
 
   return (
-    <section className="relative w-full py-12 bg-gray-50">
+    <section className="relative w-full py-12 bg-gray-50 overflow-hidden">
+{/* 
+      <div className="absolute -top-20 -right-20 w-60 h-60 bg-red-500/20 rounded-full blur-3xl"></div>
+    <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-blue-500/20 rounded-full blur-3xl"></div> */}
+
+      <div className="absolute w-72 h-72 z-1  bg-red-500/30 rounded-full blur-3xl bottom-30 right-10"></div>
+      <div className="absolute w-72 h-72 bg-blue-500/30 rounded-full blur-3xl top-30 left-10"></div>
       <div className="max-w-7xl mx-auto px-8">
-        {/* Heading */}
         <div className="text-center mb-12">
           <h2 className="text-5xl font-extrabold text-gray-900">
             Alumni <span className="text-red-600">Talks</span>
@@ -49,13 +64,17 @@ function Talks() {
 
         {/* Talks Grid */}
         <div className="grid md:grid-cols-3 gap-10">
-          {talks.map((talk, i) => (
+          {talksArray.map((talk, i) => (
             <div
               key={talk._id}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-2xl transition"
+              className="bg-white z-10 rounded-2xl shadow-lg overflow-hidden group hover:shadow-2xl transition"
             >
               <div className="relative w-full h-56">
-                <img className="w-full h-full object-cover" src={talk.media.images[0].image} alt={talk.title} />
+                <img
+                  className="w-full h-full object-cover"
+                  src={talk.media.images[0].image}
+                  alt={talk.title}
+                />
                 {index === i && isPlaying && (
                   <>
                     {talk.media.videoLink ? (
@@ -86,7 +105,7 @@ function Talks() {
                         }, 100);
                       }
                     }}
-                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition"
+                    className="absolute  inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition"
                   >
                     <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 transition">
                       <FaPlay className="text-red-600 ml-1" />
@@ -96,7 +115,10 @@ function Talks() {
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-3">
+              <div
+                onClick={() => navigate("/talkInsight", { state: { talk } })}
+                className="p-6 z-20  space-y-3"
+              >
                 <h3 className="text-xl font-semibold text-gray-900">
                   {talk.title}
                 </h3>
@@ -137,16 +159,20 @@ function Talks() {
           ))}
         </div>
 
-        {isMore && (
+        
           <div className="text-center mt-16">
             <button
-              onClick={() => setPage(page + 1)}
-              className="px-8 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-red-600 to-blue-600 shadow-lg hover:scale-105 transition"
+              onClick={() => fetchNextPage()}
+              disabled={!hasNextPage || isFetchingNextPage}
             >
-              View All Talks
+              {isFetchingNextPage
+                ? "Loading..."
+                : hasNextPage
+                ? "Load More"
+                : "No More Talks"}
             </button>
           </div>
-        )}
+        
       </div>
     </section>
   );
