@@ -3,7 +3,7 @@ function Footer() {
     <footer className="w-full bg-white text-gray-700 border-t border-gray-200 py-12">
       <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-10">
         
-        {/* Brand */}
+        
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
             Alumni<span className="text-red-600">Talks</span>
@@ -13,7 +13,7 @@ function Footer() {
           </p>
         </div>
 
-        {/* Quick Links */}
+        
         <div>
           <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
           <ul className="space-y-2 text-sm">
@@ -24,7 +24,7 @@ function Footer() {
           </ul>
         </div>
 
-        {/* Socials */}
+        
         <div>
           <h3 className="font-semibold text-gray-900 mb-3">Connect With Us</h3>
           <div className="flex space-x-4 text-sm">
@@ -35,7 +35,7 @@ function Footer() {
         </div>
       </div>
 
-      {/* Bottom Note */}
+      
       <div className="mt-10 border-t border-gray-200 pt-6 text-center text-sm text-gray-500">
         © {new Date().getFullYear()} AlumniTalks. All rights reserved.
       </div>

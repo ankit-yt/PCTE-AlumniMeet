@@ -344,6 +344,7 @@ export const deleteAlumniMeet = async (
 ) => {
   try {
     const id = req.params.id;
+    console.log(id)
     const deletedAlumniMeet = await deleteAlumniMeetService(id);
 
     const imagesIds = deletedAlumniMeet?.media?.images.map(

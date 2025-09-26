@@ -21,6 +21,7 @@ const AlumniMeetSchema = new Schema<alumniMeetDocument>({
     videoLink: { type: String },
     videoId: { type: String },
   },
+  status:{type:String, enum:['Upcoming','Ongoing','Completed'], default:'Upcoming'},
   description: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 },{

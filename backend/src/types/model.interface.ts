@@ -28,6 +28,7 @@ export interface alumniMeetDocument extends Document {
     title:string;
     time:Date;
     classJoined:string[];
+    status:String,
     organizedBy:string;
     location:string;
     alumni:Alumni;

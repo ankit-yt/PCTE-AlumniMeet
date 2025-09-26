@@ -19,12 +19,11 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "http://192.168.18.163:5173"
+      "http://192.168.29.104:5173"
     ],
     credentials: true
   })
 );
-
 
 
 import globalErrorHandler from "./utility/globalError";

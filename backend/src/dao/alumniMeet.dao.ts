@@ -84,7 +84,7 @@ export const checkAlumniByIdDao = async (id: string): Promise<boolean> => {
 // Production ready done
 export const checkAlumniMeetsDao = async (id: string): Promise<boolean> => {
   try {
-    const alumniMeets = await alumniMeetModel.exists({ alumni: id });
+    const alumniMeets = await alumniMeetModel.exists({ _id: id });
     return Boolean(alumniMeets);
   } catch (err: any) {
     console.error("DAO Error [checkAlumniMeets]:", err);

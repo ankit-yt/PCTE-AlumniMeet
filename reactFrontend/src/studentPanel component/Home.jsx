@@ -64,7 +64,6 @@ function Home() {
   <PastHighlights/>
   <StatsSection/>
   <Testimonials/>
-  <Footer/>
 </>
 
   );

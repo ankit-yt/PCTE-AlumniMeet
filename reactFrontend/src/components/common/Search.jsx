@@ -5,7 +5,7 @@ import Timeline from "../add alumni components/rightBar/Timeline";
 import AlumniListDesk from "../add alumni components/deviceBasedAlumniList/AlumniListDesk";
 import AlumniListMobile from "../add alumni components/deviceBasedAlumniList/AlumniListMobile";
 import { useSelector } from "react-redux";
-import GalleryModel from "../plan meet components/GalleryModel";
+import GalleryModel from "../plan meet components/gallery-components/GalleryModel";
 
 function Search({ handleDelete, values, setters }) {
   const {
@@ -69,7 +69,7 @@ function Search({ handleDelete, values, setters }) {
 
   return (
     <div className="absolute w-full h-full overflow-hidden glass-cardd md:p-5 py-3 top-0 left-0 flex flex-col  z-10">
-      {/* 🔍 Search Bar & Header */}
+  
       <div className="w-full relative    px-10 py-4 flex flex-col gap-4">
         <div
           className={`z-10 absolute md:-top-6 -top-20 w-80 h-[100vh] right-0 transform ${
@@ -174,7 +174,9 @@ function Search({ handleDelete, values, setters }) {
           <button
             onClick={() => {
               console.log("clicked");
-              setImageIds([]);
+             if(section === 'planMeet'){
+               setImageIds([]);
+             }
               setIsAdding(!isAdding);
               setters.setIsEditing(false);
               setters.setname("");

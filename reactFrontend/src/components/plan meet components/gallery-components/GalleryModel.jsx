@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { IoClose } from "react-icons/io5";
 import { FastAverageColor } from "fast-average-color";
-import Header from "./gallery-components/Header";
-import Video from "./gallery-components/Video";
-import Images from "./gallery-components/Images";
+import Header from "./Header";
+import Video from "./Video";
+import Images from "./Images";
 import { useSelector } from "react-redux";
 import { IoMdImages } from "react-icons/io";
 import { FaVideo } from "react-icons/fa6";

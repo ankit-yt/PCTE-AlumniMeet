@@ -364,6 +364,7 @@ export const deleteAlumniMeetService = async (
   if (!isAlumniMeetExist) {
     throw new Error("Cannot delete alumni meet. Alumni meet not exist");
   }
+
   const deletedAlumniMeet = await deleteAlumniMeetDao(id);
   if (!deletedAlumniMeet)
     throw new Error("Deletion failed. Alumni may have already been deleted.");

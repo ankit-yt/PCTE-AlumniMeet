@@ -8,17 +8,12 @@ function Header({ values, setters }) {
     isDesktop,
     isMobile,
     mediaRef,
-    mobileViewImages,
-    mobileViewVideo,
-    isVideoSelected,
-    isImagesSelected,
   } = values;
   const {
     setToggle,
     setIsGalleryOpen,
     handleMediaUpdate,
     setIsMediaUploadModelOpen,
-    setvideo,
     handleMobileMediaChange,
   } = setters;
   console.log(isMobile, isDesktop);

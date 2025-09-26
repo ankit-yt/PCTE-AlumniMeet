@@ -50,6 +50,8 @@ function AddAlumni() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingAlumniId, setDeletingAlumniId] = useState("");
+  
+    const [triggerReset, setTriggerReset] = useState(false);
 
   const { alumniLoading } = useSelector((state) => state.loading);
 
@@ -275,6 +277,13 @@ const inputFields = [
 
   }
 
+  useEffect(()=>{
+    if (triggerReset) {
+      handleReset();
+      setTriggerReset(false);
+    }
+  },[triggerReset])
+
 
   useEffect(()=>{
     setAllAlumniList(allAlumni)
@@ -350,7 +359,7 @@ const inputFields = [
       )}
 
       <div className="md:px-10 h-full no-scrollbar overflow-auto  ">
-      <Header value={{isEditing , errorMessage ,section:'addAlumni', title1:"Add New Alumni" , description1:"Provide the alumni's details below to add them to the system.", title2:"Edit Alumni Information" , description2:"Update the details below to edit this alumni’s record in the database." }} setters={{setErrorMessage , setIsAdding:setIsAddingAlumni}} handleReset={handleReset} />
+      <Header value={{isEditing , errorMessage ,section:'addAlumni', title1:"Add New Alumni" , description1:"Provide the alumni's details below to add them to the system.", title2:"Edit Alumni Information" , description2:"Update the details below to edit this alumni’s record in the database.", triggerReset }} setters={{setErrorMessage , setIsAdding:setIsAddingAlumni , setTriggerReset}} handleReset={handleReset} />
 
         <div className="w-full mt-4 gap-4 md:h-5/6 h-auto flex flex-col md:flex-row">
           {width >= 1024 && width >= 768 ? (
