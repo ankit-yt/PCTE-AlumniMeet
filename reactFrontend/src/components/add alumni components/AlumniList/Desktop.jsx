@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Desktop(props) {
+function Desktop({props}) {
       const {
     section,
     list,

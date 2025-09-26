@@ -247,12 +247,11 @@ export const updateAlumniMeet = async (
     const newData: AlumniMeetInput = {
       ...data,
       classJoined: parsedClassJoined,
-      media: {
-        ...(data.media || {}),
-        ...(video && { videoLink: video, videoId }),
-        ...(images.length > 0 && { images }),
-      },
     };
+    const talkVideo = video && {videoLink:video, videoId}
+    console.log('videos : ' , talkVideo)
+    const talkImages = images.length > 0 && images
+    console.log('images : ' ,talkImages)
 
     console.dir(data);
 
@@ -264,6 +263,8 @@ export const updateAlumniMeet = async (
     const updatedAlumniMeet = await updateAlumniMeetService(
       id,
       newData,
+      talkImages,
+      talkVideo,
       deleteImagesUrls
     );
     res.status(200).json({

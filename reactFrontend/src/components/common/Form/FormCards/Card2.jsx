@@ -1,12 +1,12 @@
 import React from "react";
-import MobileHeader from "./mobileBasedForm/mobileHeader";
-import ImageField from "./mobileBasedForm/imageField";
+import MobileHeader from "./../MobileHeader";
+import ImageField from "./../ImageField";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { IoAdd } from "react-icons/io5";
-import CareerTimelineInput from "../common/customInputFields/CareerTimelineInput";
-import AchievementInput from "../common/customInputFields/AchievementInput";
+import CareerTimelineInput from "./../../customInputFields/CareerTimelineInput";
+import AchievementInput from "../../customInputFields/AchievementInput";
 
-import MediaInputs from "../common/customInputFields/MediaInputs";
+import MediaInputs from "../../customInputFields/MediaInputs";
 
 function Card2({
   values,
@@ -17,14 +17,7 @@ function Card2({
 }) {
   const {
     section,
-    name,
-    batch,
-    linkedIn,
-    email,
     Step,
-    currentCompany,
-    currentRole,
-    quote,
     careerTimeline,
     achievement,
     newAch,
@@ -40,17 +33,10 @@ function Card2({
     isImagesUploaded,
     videoRef,
     imageRef,
+    
   } = values;
 
   const {
-    setname,
-    setBatch,
-    setLinkedIn,
-    setEmail,
-    setCareerTimeline,
-    setCurrentCompany,
-    setCurrentRole,
-    setQuote,
     setStep,
     setAchievement,
     setNewAch,
@@ -59,16 +45,16 @@ function Card2({
     setIsVideoSelected,
     setNewClass,
     setClassJoined,
+    setCareerTimeline,
   } = setters;
 
-  // helper fallback if handleImageChange isn't provided
   const onMobileImageChange = (e) => {
     if (handleImageChange) return handleImageChange(e);
     const file = e.target.files?.[0];
     if (file && setProfilePic) setProfilePic(file);
   };
 
-  // progress width for mobile step bar
+
   const progressWidth = Step === 1 ? "50%" : "100%";
 
   console.log("printing step number")
@@ -88,7 +74,7 @@ function Card2({
     >
       {/* mobile header */}
       <MobileHeader
-        props={{ previewURL, isEditing, Step, setStep, progressWidth }}
+        props={{ previewURL,section, isEditing, Step, setStep, progressWidth }}
       />
 
       {/* desktop header */}
@@ -102,14 +88,13 @@ function Card2({
         className="space-y-6 pb-3 md:pb-0 px-4 md:px-0"
         action="post"
       >
-        {/* step 1 */}
         {Step === 1 && (
           <div className="space-y-6">
             {/* Mobile-only photo upload */}
-            <ImageField
+            {!isEditing && <ImageField
               previewURL={previewURL}
               onMobileImageChange={onMobileImageChange}
-            />
+            />}
 
             {/* Group: Basic Info */}
             <div>
@@ -180,10 +165,12 @@ function Card2({
 
             <div className="hidden md:flex md:justify-end mt-4">
               <button
-                onClick={(e) => {
-                  e.preventDefault()
+                onClick={() => {
                   if(!(isImagesUploaded && isVideoUploaded)){
                     setStep(2)
+                  }else{
+                    console.log("cj;lla")
+                    isEditing ? handleUpdate : handleSubmit
                   }
                 }}
                 className="
@@ -275,15 +262,20 @@ function Card2({
             <>
               <span className="text-[12px] text-gray-500">Step 1 of 2</span>
               <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if(!(isImagesUploaded && isVideoUploaded))
-                  setStep(2);
+              
+                type="submit"
+                form="alumniForm"
+                onClick={() => {
+                  if(!(isImagesUploaded && isVideoUploaded)){
+                    setStep(2)
+                  }else{
+                    console.log("cj;lla")
+                    isEditing ? handleUpdate : handleSubmit
+                  }
                 }}
                 className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-semibold"
               >
-                Next
+               {(isImagesUploaded && isVideoUploaded) ? 'Submit' : 'Next'}
                 <svg
                   className="w-4 h-4"
                   fill="none"

@@ -160,7 +160,7 @@ export const createNewAlumniMeetService = async (
 
 export const deleteAlumniService = async (id: string): Promise<Alumni> => {
   const isAlumniExist = await checkAlumniByIdDao(id);
-  
+
   if (!isAlumniExist) {
     throw new NotFoundError("Can't delete alumni. Alumni not exist");
   }
@@ -200,7 +200,7 @@ export const updateAlumniService = async (
   if (!mongoose.Types.ObjectId.isValid(id))
     throw new NotFoundError("Invalid alumni ID");
 
-  //  Parse JSON 
+  //  Parse JSON
   let parsedCareerTimeline, parsedAchievements;
   try {
     parsedCareerTimeline = JSON.parse(data.careerTimeline as unknown as string);
@@ -230,7 +230,6 @@ export const updateAlumniService = async (
         "Each career step must include year, role, company, and location"
       );
   }
-
 
   const oldAlumni = await findAlumniByIdDao(id);
   if (!oldAlumni)
@@ -262,6 +261,8 @@ export const getAllAlumniMeetsService = async (): Promise<
 export const updateAlumniMeetService = async (
   id: string,
   data: AlumniMeetInput,
+  talkImages : {imageId:string , image:string},
+  talkVideo : {videoId:string , videoLink:string}[],
   deleteImages: string[]
 ): Promise<alumniMeetDocument> => {
   if (
@@ -296,14 +297,7 @@ export const updateAlumniMeetService = async (
   ) {
     throw new ValidationError("Invalid class values provided");
   }
-
-  if (data.media.images.length > 5) {
-    throw new ValidationError("You can upload a maximum of 5 images");
-  }
-  if (data.media.videoLink && typeof data.media.videoLink !== "string") {
-    throw new ValidationError("Invalid video link provided");
-  }
-
+  
   data.title = data.title.trim();
   data.organizedBy = data.organizedBy.trim();
   data.location = data.location.trim();
@@ -312,7 +306,7 @@ export const updateAlumniMeetService = async (
   if (!isAlumniMeetExist) {
     throw new Error("Cannot update alumni meet. Alumni meet not exist");
   }
-  const updatedAlumniMeet = await updateAlumniMeetDao(id, data, deleteImages);
+  const updatedAlumniMeet = await updateAlumniMeetDao(id, data,talkImages,talkVideo, deleteImages);
   if (!updatedAlumniMeet) throw new Error("Updation failed !.");
   return updatedAlumniMeet;
 };
@@ -371,7 +365,6 @@ export const deleteAlumniMeetService = async (
   return deletedAlumniMeet;
 };
 
-
 export const addNewFeedbackService = async (
   name: string,
   company: string,
@@ -406,10 +399,13 @@ export const addNewFeedbackService = async (
   }
 };
 
-export const  getTalksPaginationService = async(page:number = 1 , limit:number = 3) => {
+export const getTalksPaginationService = async (
+  page: number = 1,
+  limit: number = 3
+) => {
   try {
     const now = new Date();
-    const {talks , total} = await  getTalksPaginationDao(page, limit , now);
+    const { talks, total } = await getTalksPaginationDao(page, limit, now);
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -417,11 +413,9 @@ export const  getTalksPaginationService = async(page:number = 1 , limit:number =
       total,
       page,
       totalPages,
-      hasMore:page<totalPages
+      hasMore: page < totalPages,
     };
   } catch (err: any) {
-    throw new Error(
-      err.message || "Error in services while getting talks"
-    );
+    throw new Error(err.message || "Error in services while getting talks");
   }
-}
+};

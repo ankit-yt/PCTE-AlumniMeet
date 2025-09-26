@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import Card1 from "../add alumni components/Card1";
-import Card2 from "../add alumni components/Card2";
+import Card1 from "../common/Form/FormCards/Card1";
+import Card2 from "../common/Form/FormCards/Card2";
 import { addMeetApi } from "../../api/meet.api";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";

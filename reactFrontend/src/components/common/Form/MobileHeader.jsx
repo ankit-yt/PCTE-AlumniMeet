@@ -1,7 +1,7 @@
 import React from 'react'
 
 function MobileHeader({props}) {
-    const {previewURL , isEditing , Step , setStep , progressWidth} = props
+    const {previewURL , isEditing ,section, Step , setStep , progressWidth} = props
   return (
     <div className="md:hidden  top-0  bg-white/90 backdrop-blur border-b border-red-100 px-4 py-3">
         <div className="flex items-center justify-between">
@@ -18,7 +18,7 @@ function MobileHeader({props}) {
             </div>
             <div>
               <h2 className="text-base font-bold text-red-700">
-                {isEditing ? "Edit Alumni" : "Add Alumni"}
+                {section === 'addAlumni' ? (isEditing ? "Edit Alumni" : "Add Alumni") : (isEditing ? "Edit Talk" : "Add new Talk")}
               </h2>
               <p className="text-[11px] text-gray-500">Step {Step} of 2</p>
             </div>
@@ -42,7 +42,7 @@ function MobileHeader({props}) {
               className={`py-2 text-sm font-medium rounded-lg transition ${Step === 2 ? "bg-white shadow" : "text-gray-600"
                 }`}
             >
-              Career & Achievements
+              {section === 'addAlumni' ? "Career & Achievements" : "Media"}
             </button>
           </div>
           {/* progress bar */}

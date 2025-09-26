@@ -43,7 +43,6 @@ function PlanMeet() {
   const [description, setDescription] = useState("");
   const [previewURL, setPreviewURL] = useState("");
   const [deletingMeetId, setDeletingMeetId] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
   const [meetId, setMeetId] = useState("");
 
   const [isImagesSelected, setIsImagesSelected] = useState(false);
@@ -367,6 +366,7 @@ function PlanMeet() {
               setIsVideoSelected,
               setIsImagesSelected,
               handleMobileViewMediaSubmit,
+              setVideo,
             }}
           />
         )}

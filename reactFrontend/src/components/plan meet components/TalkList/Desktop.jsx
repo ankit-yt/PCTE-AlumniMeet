@@ -1,7 +1,5 @@
 import React from 'react'
-import Desktop from '../../add alumni components/list/desktop';
-
-function Desktop(props) {
+function Desktop({props}) {
      const {
     list,
     setSelectedMeetArray,

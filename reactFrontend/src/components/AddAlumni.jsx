@@ -5,8 +5,8 @@ import {
   updateAlumni,
 } from "../api/alumni.api";
 import { toast } from "react-toastify";
-import Card1 from "./add alumni components/Card1";
-import Card2 from "./add alumni components/Card2";
+import Card1 from "./common/Form/FormCards/Card1";
+import Card2 from "./common/Form/FormCards/Card2";
 import SearchAlumni from "./common/Search";
 import { FiSearch } from "react-icons/fi";
 import { RiResetLeftFill } from "react-icons/ri";

@@ -170,6 +170,8 @@ export const getAllAlumniMeetsDao = async () => {
 export const updateAlumniMeetDao = async (
   id: string,
   data: AlumniMeetInput,
+     talkImages : {imageId:string , image:string}[],
+  talkVideo : {videoId:string , videoLink:string},
   deleteImages: string[]
 ) => {
   try {
@@ -181,8 +183,16 @@ export const updateAlumniMeetDao = async (
     if (!alumniMeet) {
       throw new Error("Alumni Meet not found");
     }
-
+    console.log(data)
     Object.assign(alumniMeet, data);
+    if(talkImages){
+      alumniMeet.media.images.push(...talkImages)
+    }
+    if(talkVideo){
+      console.log(talkVideo.videoLink)
+      alumniMeet.media.videoLink = talkVideo.videoLink
+      alumniMeet.media.videoId = talkVideo.videoId
+    }
 
     if (deleteImages.length > 0) {
       alumniMeet.media.images = alumniMeet.media.images.filter(

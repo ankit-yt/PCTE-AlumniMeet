@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { IoAddOutline } from "react-icons/io5";
 import RightBar from "../add alumni components/rightBar/RightBar";
 import Timeline from "../add alumni components/rightBar/Timeline";
-import AlumniListDesk from "../add alumni components/deviceBasedAlumniList/AlumniListDesk";
-import AlumniListMobile from "../add alumni components/deviceBasedAlumniList/AlumniListMobile";
 import { useSelector } from "react-redux";
 import GalleryModel from "../plan meet components/gallery-components/GalleryModel";
+import DesktopList from "../common/List/Desktop";
+import MobileList from "../common/List/Mobile";
 
 function Search({ handleDelete, values, setters }) {
   const {
@@ -48,6 +48,7 @@ function Search({ handleDelete, values, setters }) {
     setIsImagesSelected,
     handleMobileViewMediaSubmit,
   } = setters;
+  console.log(setters);
 
   const { isTablet, screenWidth, isDesktop } = useSelector((state) => state.ui);
   console.log(isDesktop, screenWidth);
@@ -69,7 +70,6 @@ function Search({ handleDelete, values, setters }) {
 
   return (
     <div className="absolute w-full h-full overflow-hidden glass-cardd md:p-5 py-3 top-0 left-0 flex flex-col  z-10">
-  
       <div className="w-full relative    px-10 py-4 flex flex-col gap-4">
         <div
           className={`z-10 absolute md:-top-6 -top-20 w-80 h-[100vh] right-0 transform ${
@@ -174,27 +174,55 @@ function Search({ handleDelete, values, setters }) {
           <button
             onClick={() => {
               console.log("clicked");
-             if(section === 'planMeet'){
-               setImageIds([]);
-             }
+              if (section === "addAlumni") {
+                setImageIds([]);
+                setters.setname("");
+                setters.setProfilePic(null);
+                setters.setBatch("");
+                setters.setLinkedIn("");
+                setters.setEmail("");
+                setters.setCurrentCompany("");
+                setters.setCurrentRole("");
+                setters.setCareerTimeline([
+                  { year: "", role: "", company: "", location: "" },
+                ]);
+                setters.setAchievement([]);
+                setters.setQuote("");
+                setters.setErrorMessage("");
+              setters.setNewAch("");
+              } else {
+                setters.setSearch("");
+                setters.setAlumniId("");
+                setters.setTitle("");
+                setters.setClassJoined([]);
+                setters.setOrganizedBy("");
+                setters.setLocation("");
+                setters.setDate("");
+                setters.setAlumni("");
+                setters.setUpdatingMeetId("");
+                setters.setDescription("");
+                setters.setImages([]);
+                setters.setPreviewURL("");
+                setters.setClickedItem(-1);
+                setters.setIsAction(false);
+                setters.setIsEditing(false);
+                setters.setDeletingMeetId("");
+                setters.setAlumniName("");
+                setters.setMeetId("");
+                setters.setIsVideoUploaded(false);
+                setters.setIsImagesUploaded(false);
+                setters.setImageIds([]);
+                setters.setMobileViewImages([]);
+                setters.setMobileViewVideo(null);
+                setters.setIsVideoSelected(false);
+                setters.setIsImagesSelected(false);
+                setters.setVideo(null)
+              }
+
               setIsAdding(!isAdding);
               setters.setIsEditing(false);
-              setters.setname("");
-              setters.setProfilePic(null);
-              setters.setBatch("");
-              setters.setLinkedIn("");
-              setters.setEmail("");
-              setters.setCurrentCompany("");
-              setters.setCurrentRole("");
-              setters.setCareerTimeline([
-                { year: "", role: "", company: "", location: "" },
-              ]);
-              setters.setAchievement([]);
-              setters.setQuote("");
               setters.setStep(1);
-              setters.setNewAch("");
               setters.setPreviewURL(null);
-              setters.setErrorMessage("");
             }}
             className="flex justify-center items-center gap-2 
                bg-gradient-to-r from-red-500 to-red-600 
@@ -211,7 +239,7 @@ function Search({ handleDelete, values, setters }) {
 
       {/*  Table */}
       {isTablet || isDesktop ? (
-        <AlumniListDesk
+        <DesktopList
           props={{
             selectedMeetArray,
             section,
@@ -247,7 +275,7 @@ function Search({ handleDelete, values, setters }) {
           }}
         />
       ) : (
-        <AlumniListMobile
+        <MobileList
           props={{
             selectedMeetArray,
             section,

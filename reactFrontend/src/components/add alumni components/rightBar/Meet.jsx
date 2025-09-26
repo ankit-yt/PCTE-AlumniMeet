@@ -92,7 +92,7 @@ function Meet({values, setters}) {
               <InfoItem
                 icon={<IoPerson />}
                 label="Classes Joined"
-                value={selectedMeetArray.classJoined?.map((item) => item)}
+                value={selectedMeetArray.classJoined?.map((item) => item+' , ')}
               />
 
                 
